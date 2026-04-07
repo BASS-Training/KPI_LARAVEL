@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import NotificationBell from '@/components/shared/NotificationBell.vue';
 
 defineEmits(['open-sidebar']);
 
@@ -18,7 +19,12 @@ const pageMap = {
     '/hr/kpi-components': { title: 'Komponen KPI', subtitle: 'PT. BASS Training Center & Consultant' },
     '/hr/sla': { title: 'SLA Pekerjaan', subtitle: 'PT. BASS Training Center & Consultant' },
     '/hr/settings': { title: 'Pengaturan', subtitle: 'PT. BASS Training Center & Consultant' },
-    '/direktur/dashboard': { title: 'Executive Dashboard', subtitle: 'PT. BASS Training Center & Consultant' },
+    '/direktur/dashboard':   { title: 'Executive Dashboard', subtitle: 'PT. BASS Training Center & Consultant' },
+    '/direktur/analytics':   { title: 'Analytics',          subtitle: 'PT. BASS Training Center & Consultant' },
+    '/hr/divisi':            { title: 'Manajemen Divisi',   subtitle: 'PT. BASS Training Center & Consultant' },
+    '/hr/analytics':         { title: 'Analytics',          subtitle: 'PT. BASS Training Center & Consultant' },
+    '/laporan-kpi':          { title: 'Laporan KPI',        subtitle: 'PT. BASS Training Center & Consultant' },
+    '/notifikasi':           { title: 'Notifikasi',         subtitle: 'PT. BASS Training Center & Consultant' },
 };
 
 const pageInfo = computed(() => pageMap[route.path] || { title: 'Dashboard KPI', subtitle: 'PT. BASS Training Center & Consultant' });
@@ -47,6 +53,8 @@ const pageInfo = computed(() => pageMap[route.path] || { title: 'Dashboard KPI',
         </div>
 
         <slot name="actions" />
+
+        <NotificationBell />
 
         <div class="hidden items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 sm:flex">
             <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-blue-600 text-[11px] font-bold text-white">

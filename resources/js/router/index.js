@@ -16,8 +16,19 @@ const KpiComponentPage = () => import('@/pages/hr/KpiComponentPage.vue');
 const SlaPage = () => import('@/pages/hr/SlaPage.vue');
 const SettingsPage = () => import('@/pages/hr/SettingsPage.vue');
 
+// HR Manager (new)
+const DivisionPage = () => import('@/pages/hr/DivisionPage.vue');
+const HRAnalyticsPage = () => import('@/pages/hr/AnalyticsPage.vue');
+
+// Pegawai (new)
+const KpiReportPage = () => import('@/pages/pegawai/KpiReportPage.vue');
+
 // Direktur
 const DirekturDashboard = () => import('@/pages/direktur/DashboardPage.vue');
+const DirekturAnalyticsPage = () => import('@/pages/direktur/AnalyticsPage.vue');
+
+// Shared
+const NotificationsPage = () => import('@/pages/NotificationsPage.vue');
 
 // ─── Route definitions ─────────────────────────────────────────────────────
 const routes = [
@@ -36,6 +47,11 @@ const routes = [
     {
         path: '/pekerjaan',
         component: PekerjaanPage,
+        meta: { requiresAuth: true, roles: ['pegawai'] },
+    },
+    {
+        path: '/laporan-kpi',
+        component: KpiReportPage,
         meta: { requiresAuth: true, roles: ['pegawai'] },
     },
 
@@ -70,12 +86,34 @@ const routes = [
         component: SettingsPage,
         meta: { requiresAuth: true, roles: ['hr_manager', 'direktur'] },
     },
+    {
+        path: '/hr/divisi',
+        component: DivisionPage,
+        meta: { requiresAuth: true, roles: ['hr_manager', 'direktur'] },
+    },
+    {
+        path: '/hr/analytics',
+        component: HRAnalyticsPage,
+        meta: { requiresAuth: true, roles: ['hr_manager', 'direktur'] },
+    },
 
     // Direktur
     {
         path: '/direktur/dashboard',
         component: DirekturDashboard,
         meta: { requiresAuth: true, roles: ['direktur'] },
+    },
+    {
+        path: '/direktur/analytics',
+        component: DirekturAnalyticsPage,
+        meta: { requiresAuth: true, roles: ['direktur'] },
+    },
+
+    // Shared
+    {
+        path: '/notifikasi',
+        component: NotificationsPage,
+        meta: { requiresAuth: true, roles: ['pegawai', 'hr_manager', 'direktur'] },
     },
 
     // Halaman khusus

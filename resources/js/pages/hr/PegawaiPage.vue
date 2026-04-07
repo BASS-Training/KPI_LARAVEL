@@ -1,112 +1,156 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import Dialog from '@/components/ui/Dialog.vue';
 import Input from '@/components/ui/Input.vue';
-import Button from '@/components/ui/Button.vue';
 import Alert from '@/components/ui/Alert.vue';
 import Skeleton from '@/components/ui/Skeleton.vue';
 import Avatar from '@/components/ui/Avatar.vue';
 import { useEmployeeStore } from '@/stores/employee';
+import { useDivisionStore } from '@/stores/division';
+import { useDepartmentStore } from '@/stores/department';
+import { usePositionStore } from '@/stores/position';
 import { useToast } from '@/composables/useToast';
 
-const store = useEmployeeStore();
-const toast = useToast();
+const store     = useEmployeeStore();
+const divStore  = useDivisionStore();
+const deptStore = useDepartmentStore();
+const posStore  = usePositionStore();
+const toast     = useToast();
 
-const employees = computed(() => store.employees);
-const showForm = ref(false);
-const editMode = ref(false);
-const selectedId = ref(null);
-const submitting = ref(false);
-const formError = ref('');
+const employees   = computed(() => store.employees);
+const showForm    = ref(false);
+const editMode    = ref(false);
+const selectedId  = ref(null);
+const submitting  = ref(false);
+const formError   = ref('');
 const deleteState = ref({ open: false, id: null, name: '' });
-const deleting = ref(false);
+const deleting    = ref(false);
 
 const emptyForm = () => ({
-    nip: '',
-    nama: '',
-    jabatan: '',
-    departemen: '',
+    nip:             '',
+    nama:            '',
+    jabatan:         '',      // auto-filled from position, sent to API
+    departemen:      '',      // auto-filled from department, sent to API
+    division_id:     null,
+    department_id:   null,
+    position_id:     null,
     status_karyawan: 'Tetap',
-    tanggal_masuk: '',
-    no_hp: '',
-    email: '',
-    role: 'pegawai',
+    tanggal_masuk:   '',
+    no_hp:           '',
+    email:           '',
+    role:            'pegawai',
 });
 
-const form = reactive(emptyForm());
+const form   = reactive(emptyForm());
 const errors = reactive({});
 
-onMounted(() => store.fetchEmployees());
+// When division changes → reset dept & position
+watch(() => form.division_id, () => {
+    form.department_id = null;
+    form.departemen    = '';
+    form.position_id   = null;
+    form.jabatan       = '';
+});
+
+// When dept changes → fill departemen string & reset position
+watch(() => form.department_id, (id) => {
+    const dept = deptStore.findById(id);
+    form.departemen  = dept?.nama ?? '';
+    form.position_id = null;
+    form.jabatan     = '';
+});
+
+// When position changes → fill jabatan string
+watch(() => form.position_id, (id) => {
+    const pos = posStore.findById(id);
+    form.jabatan = pos?.nama ?? '';
+});
+
+// Filtered lists based on cascade selection
+const filteredDepts = computed(() =>
+    form.division_id
+        ? deptStore.departments.filter(d => d.division_id === form.division_id)
+        : deptStore.departments
+);
+
+const filteredPositions = computed(() =>
+    form.department_id
+        ? posStore.positions.filter(p => p.department_id === form.department_id)
+        : form.division_id
+            ? posStore.positions.filter(p => {
+                const dept = deptStore.findById(p.department_id);
+                return dept?.division_id === form.division_id;
+            })
+            : posStore.positions
+);
+
+onMounted(() => {
+    store.fetchEmployees();
+    divStore.fetchDivisions();
+    deptStore.fetchDepartments();
+    posStore.fetchPositions();
+});
 
 function resetForm() {
     Object.assign(form, emptyForm());
     formError.value = '';
-    Object.keys(errors).forEach((key) => { errors[key] = ''; });
+    Object.keys(errors).forEach(k => { errors[k] = ''; });
 }
 
 function openCreate() {
-    editMode.value = false;
+    editMode.value   = false;
     selectedId.value = null;
     resetForm();
-    showForm.value = true;
+    showForm.value   = true;
 }
 
-function openEdit(employee) {
-    editMode.value = true;
-    selectedId.value = employee.id;
+function openEdit(emp) {
+    editMode.value   = true;
+    selectedId.value = emp.id;
     resetForm();
     Object.assign(form, {
-        nip: employee.nip ?? '',
-        nama: employee.nama ?? '',
-        jabatan: employee.jabatan ?? '',
-        departemen: employee.departemen ?? '',
-        status_karyawan: employee.status_karyawan ?? 'Tetap',
-        tanggal_masuk: employee.tanggal_masuk ?? '',
-        no_hp: employee.no_hp ?? '',
-        email: employee.email ?? '',
-        role: employee.role ?? 'pegawai',
+        nip:             emp.nip ?? '',
+        nama:            emp.nama ?? '',
+        jabatan:         emp.jabatan ?? '',
+        departemen:      emp.departemen ?? '',
+        division_id:     emp.division_id ?? null,
+        department_id:   emp.department_id ?? null,
+        position_id:     emp.position_id ?? null,
+        status_karyawan: emp.status_karyawan ?? 'Tetap',
+        tanggal_masuk:   emp.tanggal_masuk ?? '',
+        no_hp:           emp.no_hp ?? '',
+        email:           emp.email ?? '',
+        role:            emp.role ?? 'pegawai',
     });
     showForm.value = true;
 }
 
 function validate() {
-    Object.assign(errors, {
-        nip: '',
-        nama: '',
-        jabatan: '',
-        departemen: '',
-        tanggal_masuk: '',
-        role: '',
-    });
-
+    Object.assign(errors, { nip: '', nama: '', jabatan: '', departemen: '', tanggal_masuk: '', role: '' });
     let valid = true;
-
-    ['nip', 'nama', 'jabatan', 'departemen', 'tanggal_masuk', 'role'].forEach((field) => {
-        if (!String(form[field] ?? '').trim()) {
-            errors[field] = 'Field wajib diisi.';
+    [['nip','NIP'], ['nama','Nama'], ['jabatan','Jabatan'], ['departemen','Departemen'],
+     ['tanggal_masuk','Tanggal masuk'], ['role','Role']].forEach(([f, label]) => {
+        if (!String(form[f] ?? '').trim()) {
+            errors[f] = `${label} wajib diisi.`;
             valid = false;
         }
     });
-
     return valid;
 }
 
 async function submit() {
     if (!validate()) return;
-
     submitting.value = true;
-    formError.value = '';
-
+    formError.value  = '';
     try {
-        if (editMode.value && selectedId.value) {
+        if (editMode.value) {
             await store.updateEmployee(selectedId.value, { ...form });
             toast.success('Data pegawai berhasil diperbarui.');
         } else {
             await store.createEmployee({ ...form });
             toast.success('Pegawai berhasil ditambahkan.');
         }
-
         showForm.value = false;
         await store.fetchEmployees();
     } catch (err) {
@@ -116,8 +160,8 @@ async function submit() {
     }
 }
 
-function askDelete(employee) {
-    deleteState.value = { open: true, id: employee.id, name: employee.nama };
+function askDelete(emp) {
+    deleteState.value = { open: true, id: emp.id, name: emp.nama };
 }
 
 async function confirmDelete() {
@@ -132,19 +176,32 @@ async function confirmDelete() {
         deleting.value = false;
     }
 }
+
+const roleBadge = { pegawai: 'badge-info', hr_manager: 'badge-warning', direktur: 'badge-success' };
+const roleLabel = { pegawai: 'Pegawai', hr_manager: 'HR Manager', direktur: 'Direktur' };
 </script>
 
 <template>
     <AppLayout>
         <template #topbar-actions>
-            <button class="btn-primary" @click="openCreate">Tambah Pegawai</button>
+            <button class="btn-primary" @click="openCreate">+ Tambah Pegawai</button>
         </template>
 
+        <section class="page-hero">
+            <div>
+                <div class="page-hero-meta">HR Panel</div>
+                <h2 class="mt-4 text-2xl font-bold leading-tight md:text-3xl">Manajemen Pegawai</h2>
+                <p class="mt-2 max-w-xl text-sm leading-6 text-white/78">
+                    Kelola data karyawan, jabatan, divisi, dan hak akses aplikasi.
+                </p>
+            </div>
+        </section>
+
+        <!-- Table -->
         <section class="dashboard-panel overflow-hidden">
             <div class="border-b border-slate-200 px-6 py-5">
-                <p class="section-heading">HR Panel</p>
-                <h2 class="mt-2 text-xl font-bold text-slate-900">Manajemen Pegawai</h2>
-                <p class="mt-1 text-sm text-slate-500">Kelola data user login, jabatan, dan role akses aplikasi.</p>
+                <p class="section-heading">Daftar Pegawai</p>
+                <h3 class="mt-1 text-lg font-bold text-slate-900">{{ employees.length }} pegawai terdaftar</h3>
             </div>
 
             <div class="p-6">
@@ -157,31 +214,35 @@ async function confirmDelete() {
                 <template v-else-if="employees.length">
                     <div class="space-y-3">
                         <div
-                            v-for="employee in employees"
-                            :key="employee.id"
+                            v-for="emp in employees"
+                            :key="emp.id"
                             class="data-row"
                         >
                             <div class="flex min-w-0 flex-1 items-center gap-3">
-                                <Avatar :name="employee.nama" size="sm" />
+                                <Avatar :name="emp.nama" size="sm" />
                                 <div class="min-w-0">
-                                    <div class="truncate text-sm font-semibold text-slate-900">{{ employee.nama }}</div>
-                                    <div class="mt-1 truncate text-xs text-slate-500">
-                                        {{ employee.nip }} · {{ employee.jabatan }} · {{ employee.departemen }}
-                                    </div>
+                                    <p class="truncate text-sm font-semibold text-slate-900">{{ emp.nama }}</p>
+                                    <p class="mt-0.5 truncate text-xs text-slate-500">
+                                        {{ emp.nip }}
+                                        <template v-if="emp.jabatan"> · {{ emp.jabatan }}</template>
+                                        <template v-if="emp.departemen"> · {{ emp.departemen }}</template>
+                                    </p>
                                 </div>
                             </div>
 
-                            <div class="hidden min-w-[180px] text-sm text-slate-600 md:block">
-                                {{ employee.email || '-' }}
+                            <div class="hidden min-w-[180px] truncate text-sm text-slate-600 md:block">
+                                {{ emp.email || '-' }}
                             </div>
 
-                            <div class="hidden min-w-[120px] md:block">
-                                <span class="badge-info">{{ employee.role }}</span>
+                            <div class="hidden min-w-[110px] md:block">
+                                <span :class="roleBadge[emp.role] ?? 'badge-info'">
+                                    {{ roleLabel[emp.role] ?? emp.role }}
+                                </span>
                             </div>
 
-                            <div class="flex items-center gap-2">
-                                <button class="btn-secondary !px-3 !py-2 text-xs" @click="openEdit(employee)">Edit</button>
-                                <button class="btn-secondary !border-red-200 !text-red-600 !px-3 !py-2 text-xs hover:!bg-red-50" @click="askDelete(employee)">Hapus</button>
+                            <div class="flex shrink-0 items-center gap-2">
+                                <button class="btn-secondary !px-3 !py-1.5 text-xs" @click="openEdit(emp)">Edit</button>
+                                <button class="btn-danger !px-3 !py-1.5 text-xs" @click="askDelete(emp)">Hapus</button>
                             </div>
                         </div>
                     </div>
@@ -193,62 +254,108 @@ async function confirmDelete() {
             </div>
         </section>
 
+        <!-- ── Form Dialog ─────────────────────────────────────────────── -->
         <Dialog v-model:open="showForm" :title="editMode ? 'Edit Pegawai' : 'Tambah Pegawai'" class="max-w-3xl">
             <Alert v-if="formError" variant="danger" class="mb-4">{{ formError }}</Alert>
 
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+
+                <!-- NIP -->
                 <div>
-                    <label class="form-label">NIP</label>
-                    <Input v-model="form.nip" class="!rounded-xl !border-slate-200 !px-4 !py-3" />
+                    <label class="form-label">NIP <span class="text-red-500">*</span></label>
+                    <Input v-model="form.nip" placeholder="Contoh: BASS-IT-01-2024" />
                     <p v-if="errors.nip" class="mt-1 text-xs text-red-500">{{ errors.nip }}</p>
                 </div>
+
+                <!-- Nama -->
                 <div>
-                    <label class="form-label">Nama Lengkap</label>
-                    <Input v-model="form.nama" class="!rounded-xl !border-slate-200 !px-4 !py-3" />
+                    <label class="form-label">Nama Lengkap <span class="text-red-500">*</span></label>
+                    <Input v-model="form.nama" placeholder="Nama lengkap pegawai" />
                     <p v-if="errors.nama" class="mt-1 text-xs text-red-500">{{ errors.nama }}</p>
                 </div>
+
+                <!-- Divisi -->
                 <div>
-                    <label class="form-label">Jabatan</label>
-                    <Input v-model="form.jabatan" class="!rounded-xl !border-slate-200 !px-4 !py-3" />
-                    <p v-if="errors.jabatan" class="mt-1 text-xs text-red-500">{{ errors.jabatan }}</p>
+                    <label class="form-label">Divisi</label>
+                    <select v-model="form.division_id" class="form-input">
+                        <option :value="null">— Pilih Divisi —</option>
+                        <option v-for="d in divStore.divisions" :key="d.id" :value="d.id">
+                            {{ d.nama }} ({{ d.kode }})
+                        </option>
+                    </select>
                 </div>
+
+                <!-- Departemen — single dropdown, string auto-filled -->
                 <div>
-                    <label class="form-label">Departemen</label>
-                    <Input v-model="form.departemen" class="!rounded-xl !border-slate-200 !px-4 !py-3" />
+                    <label class="form-label">Departemen <span class="text-red-500">*</span></label>
+                    <select v-model="form.department_id" class="form-input">
+                        <option :value="null">— Pilih Departemen —</option>
+                        <option v-for="d in filteredDepts" :key="d.id" :value="d.id">{{ d.nama }}</option>
+                    </select>
                     <p v-if="errors.departemen" class="mt-1 text-xs text-red-500">{{ errors.departemen }}</p>
                 </div>
+
+                <!-- Jabatan — single dropdown, string auto-filled -->
+                <div>
+                    <label class="form-label">Jabatan <span class="text-red-500">*</span></label>
+                    <select v-model="form.position_id" class="form-input">
+                        <option :value="null">— Pilih Jabatan —</option>
+                        <option v-for="p in filteredPositions" :key="p.id" :value="p.id">
+                            {{ p.nama }}
+                        </option>
+                    </select>
+                    <p v-if="errors.jabatan" class="mt-1 text-xs text-red-500">{{ errors.jabatan }}</p>
+                </div>
+
+                <!-- Status Karyawan -->
                 <div>
                     <label class="form-label">Status Karyawan</label>
                     <select v-model="form.status_karyawan" class="form-input">
                         <option value="Tetap">Tetap</option>
                         <option value="Kontrak">Kontrak</option>
+                        <option value="Magang">Magang</option>
+                        <option value="Paruh Waktu">Paruh Waktu</option>
                     </select>
                 </div>
+
+                <!-- Tanggal Masuk -->
                 <div>
-                    <label class="form-label">Tanggal Masuk</label>
+                    <label class="form-label">Tanggal Masuk <span class="text-red-500">*</span></label>
                     <input v-model="form.tanggal_masuk" type="date" class="form-input" />
                     <p v-if="errors.tanggal_masuk" class="mt-1 text-xs text-red-500">{{ errors.tanggal_masuk }}</p>
                 </div>
+
+                <!-- No HP -->
                 <div>
                     <label class="form-label">No. HP</label>
-                    <Input v-model="form.no_hp" class="!rounded-xl !border-slate-200 !px-4 !py-3" />
+                    <Input v-model="form.no_hp" placeholder="08xx-xxxx-xxxx" />
                 </div>
+
+                <!-- Email -->
                 <div>
                     <label class="form-label">Email</label>
-                    <Input v-model="form.email" type="email" class="!rounded-xl !border-slate-200 !px-4 !py-3" />
+                    <Input v-model="form.email" type="email" placeholder="nama@bass.co.id" />
                 </div>
+
+                <!-- Role -->
                 <div class="md:col-span-2">
-                    <label class="form-label">Role</label>
+                    <label class="form-label">Role <span class="text-red-500">*</span></label>
                     <select v-model="form.role" class="form-input">
-                        <option value="pegawai">pegawai</option>
-                        <option value="hr_manager">hr_manager</option>
-                        <option value="direktur">direktur</option>
+                        <option value="pegawai">Pegawai</option>
+                        <option value="hr_manager">HR Manager</option>
+                        <option value="direktur">Direktur</option>
                     </select>
                     <p v-if="errors.role" class="mt-1 text-xs text-red-500">{{ errors.role }}</p>
                 </div>
+
             </div>
 
-            <div class="mt-6 flex justify-end gap-3">
+            <!-- hint: jabatan & departemen auto-filled -->
+            <p v-if="form.jabatan || form.departemen" class="mt-3 rounded-lg bg-blue-50 px-3 py-2 text-[11px] text-blue-600">
+                Akan disimpan sebagai: <strong>{{ form.jabatan || '–' }}</strong> · <strong>{{ form.departemen || '–' }}</strong>
+            </p>
+
+            <div class="mt-5 flex justify-end gap-3">
                 <button class="btn-secondary" :disabled="submitting" @click="showForm = false">Batal</button>
                 <button class="btn-primary" :disabled="submitting" @click="submit">
                     {{ submitting ? 'Menyimpan...' : editMode ? 'Perbarui Pegawai' : 'Simpan Pegawai' }}
@@ -256,13 +363,14 @@ async function confirmDelete() {
             </div>
         </Dialog>
 
+        <!-- ── Delete Dialog ───────────────────────────────────────────── -->
         <Dialog v-model:open="deleteState.open" title="Hapus Pegawai" class="max-w-lg">
-            <p class="text-sm text-slate-600">
-                Hapus <strong>{{ deleteState.name }}</strong> dari sistem?
+            <p class="mt-3 text-sm text-slate-600">
+                Hapus <strong>{{ deleteState.name }}</strong> dari sistem? Tindakan ini tidak dapat dibatalkan.
             </p>
-            <div class="mt-6 flex justify-end gap-3">
+            <div class="mt-5 flex justify-end gap-3">
                 <button class="btn-secondary" :disabled="deleting" @click="deleteState.open = false">Batal</button>
-                <button class="btn-primary" :disabled="deleting" style="background: linear-gradient(135deg, #dc2626, #b91c1c);" @click="confirmDelete">
+                <button class="btn-danger" :disabled="deleting" @click="confirmDelete">
                     {{ deleting ? 'Menghapus...' : 'Ya, Hapus' }}
                 </button>
             </div>

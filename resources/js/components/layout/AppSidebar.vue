@@ -20,6 +20,13 @@ const navMap = {
             items: [
                 { label: 'Beranda', to: '/dashboard', icon: `<path d="M3 10.75L12 4l9 6.75V20a1 1 0 0 1-1 1h-5.5v-6.25h-5V21H4a1 1 0 0 1-1-1v-9.25Z"/>` },
                 { label: 'Input Pekerjaan', to: '/pekerjaan', icon: `<path d="M7 3h10v18H7z"/><path d="M10 8h4M10 12h4M10 16h4"/>` },
+                { label: 'Laporan KPI', to: '/laporan-kpi', icon: `<path d="M4 19V5m0 14h16M8 15l3-3 3 2 4-6"/>` },
+            ],
+        },
+        {
+            section: 'Lainnya',
+            items: [
+                { label: 'Notifikasi', to: '/notifikasi', icon: `<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>` },
             ],
         },
     ],
@@ -29,15 +36,23 @@ const navMap = {
             items: [
                 { label: 'Beranda HR', to: '/hr/dashboard', icon: `<path d="M4 19V5m0 14h16M8 15l3-3 3 2 4-6"/>` },
                 { label: 'Mapping KPI', to: '/hr/mapping', icon: `<path d="M7 3h10v18H7z"/><path d="M10 8h4M10 12h4M10 16h4"/>` },
+                { label: 'Analytics', to: '/hr/analytics', icon: `<path d="M4 19V5m0 14h16"/><path d="M7 15V9m5 6V5m5 10v-3"/>` },
             ],
         },
         {
             section: 'HR Panel',
             items: [
                 { label: 'Manajemen Pegawai', to: '/hr/pegawai', icon: `<path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>` },
+                { label: 'Manajemen Divisi', to: '/hr/divisi', icon: `<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>` },
                 { label: 'Komponen KPI', to: '/hr/kpi-components', icon: `<circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48 2.83-2.83"/>` },
                 { label: 'SLA Pekerjaan', to: '/hr/sla', icon: `<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>` },
                 { label: 'Pengaturan', to: '/hr/settings', icon: `<path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/><path d="M3 12h2m14 0h2M12 3v2m0 14v2M5.64 5.64l1.41 1.41m9.9 9.9 1.41 1.41m0-12.72-1.41 1.41m-9.9 9.9-1.41 1.41"/>` },
+            ],
+        },
+        {
+            section: 'Lainnya',
+            items: [
+                { label: 'Notifikasi', to: '/notifikasi', icon: `<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>` },
             ],
         },
     ],
@@ -46,8 +61,22 @@ const navMap = {
             section: 'Menu Utama',
             items: [
                 { label: 'Executive Dashboard', to: '/direktur/dashboard', icon: `<path d="M4 19V5m0 14h16"/><path d="M7 15V9m5 6V5m5 10v-3"/>` },
+                { label: 'Analytics', to: '/direktur/analytics', icon: `<path d="M4 19V5m0 14h16M8 15l3-3 3 2 4-6"/>` },
                 { label: 'Beranda HR', to: '/hr/dashboard', icon: `<path d="M4 19V5m0 14h16M8 15l3-3 3 2 4-6"/>` },
+            ],
+        },
+        {
+            section: 'Manajemen',
+            items: [
+                { label: 'Analytics HR', to: '/hr/analytics', icon: `<path d="M4 19V5m0 14h16"/><path d="M7 15V9m5 6V5m5 10v-3"/>` },
+                { label: 'Manajemen Divisi', to: '/hr/divisi', icon: `<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>` },
                 { label: 'Pengaturan', to: '/hr/settings', icon: `<path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/><path d="M3 12h2m14 0h2M12 3v2m0 14v2M5.64 5.64l1.41 1.41m9.9 9.9 1.41 1.41m0-12.72-1.41 1.41m-9.9 9.9-1.41 1.41"/>` },
+            ],
+        },
+        {
+            section: 'Lainnya',
+            items: [
+                { label: 'Notifikasi', to: '/notifikasi', icon: `<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>` },
             ],
         },
     ],

@@ -11,6 +11,11 @@ class Setting extends Model
         'value',
     ];
 
+    public static function getValue(string $key, mixed $default = null): mixed
+    {
+        return static::where('key', $key)->value('value') ?? $default;
+    }
+
     public static function setValue(string $key, mixed $value): self
     {
         return static::updateOrCreate(

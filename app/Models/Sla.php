@@ -11,7 +11,13 @@ class Sla extends Model
     protected $fillable = [
         'nama_pekerjaan',
         'jabatan',
+        'position_id',
         'durasi_jam',
         'keterangan',
     ];
+
+    public function position()
+    {
+        return $this->belongsTo(Position::class);
+    }
 }

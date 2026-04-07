@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Services\KpiCalculatorService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -20,6 +21,9 @@ class User extends Authenticatable
         'nama',
         'jabatan',
         'departemen',
+        'division_id',
+        'department_id',
+        'position_id',
         'status_karyawan',
         'tanggal_masuk',
         'no_hp',
@@ -41,6 +45,21 @@ class User extends Authenticatable
         ];
     }
 
+    public function division(): BelongsTo
+    {
+        return $this->belongsTo(Division::class);
+    }
+
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class);
+    }
+
+    public function positionRef(): BelongsTo
+    {
+        return $this->belongsTo(Position::class, 'position_id');
+    }
+
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
@@ -49,6 +68,16 @@ class User extends Authenticatable
     public function mappedTasks(): HasMany
     {
         return $this->hasMany(Task::class, 'mapped_by');
+    }
+
+    public function kpiReports(): HasMany
+    {
+        return $this->hasMany(KpiReport::class);
+    }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(KpiNotification::class);
     }
 
     public function activityLogs(): HasMany

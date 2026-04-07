@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\DivisionResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -12,11 +13,16 @@ class KpiComponentResource extends JsonResource
         return [
             'id' => $this->id,
             'jabatan' => $this->jabatan,
+            'division_id' => $this->division_id,
+            'division' => $this->whenLoaded('division', fn () => new DivisionResource($this->division)),
             'objectives' => $this->objectives,
             'strategy' => $this->strategy,
             'bobot' => (float) $this->bobot,
             'target' => $this->target !== null ? (float) $this->target : null,
+            'satuan' => $this->satuan,
             'tipe' => $this->tipe,
+            'kpi_type' => $this->kpi_type,
+            'period' => $this->period,
             'catatan' => $this->catatan,
             'is_active' => (bool) $this->is_active,
             'created_at' => optional($this->created_at)->toISOString(),

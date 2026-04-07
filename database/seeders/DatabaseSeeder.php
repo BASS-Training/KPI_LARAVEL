@@ -13,6 +13,9 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->call(DivisionSeeder::class);
+
+
         $users = [
             [
                 'nip' => 'BASS-DIRUT-01-2016',

@@ -25,6 +25,9 @@ class StoreEmployeeRequest extends SanitizedFormRequest
             'no_hp' => ['nullable', 'string', 'max:30'],
             'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($employeeId)],
             'role' => ['required', Rule::in(['pegawai', 'hr_manager', 'direktur'])],
+            'division_id' => ['nullable', 'exists:divisions,id'],
+            'department_id' => ['nullable', 'exists:departments,id'],
+            'position_id' => ['nullable', 'exists:positions,id'],
         ];
     }
 }

@@ -44,8 +44,6 @@ class EmployeeController extends ApiController
 
     public function update(StoreEmployeeRequest $request, User $employee)
     {
-        $this->authorize('update', $employee);
-
         $payload = $request->validated();
 
         if (
@@ -71,8 +69,6 @@ class EmployeeController extends ApiController
 
     public function destroy(Request $request, User $employee)
     {
-        $this->authorize('delete', $employee);
-
         $payload = ['nip' => $employee->nip, 'nama' => $employee->nama];
         $employee->tokens()->delete();
         $employee->delete();

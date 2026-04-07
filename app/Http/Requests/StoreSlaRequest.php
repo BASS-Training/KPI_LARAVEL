@@ -14,6 +14,7 @@ class StoreSlaRequest extends SanitizedFormRequest
         return [
             'nama_pekerjaan' => ['required', 'string', 'max:255'],
             'jabatan' => ['required', 'string', 'max:255'],
+            'position_id' => ['nullable', 'exists:positions,id'],
             'durasi_jam' => ['required', 'integer', 'min:1'],
             'keterangan' => ['nullable', 'string'],
         ];
