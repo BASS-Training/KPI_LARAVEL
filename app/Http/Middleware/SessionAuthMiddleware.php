@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Employee;
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 
@@ -16,7 +16,7 @@ class SessionAuthMiddleware
             return redirect()->route('login');
         }
 
-        $user = Employee::find($userId);
+        $user = User::find($userId);
 
         if (!$user) {
             session()->forget(['user_id', 'user']);

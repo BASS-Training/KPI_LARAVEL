@@ -2,31 +2,123 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
+use App\Services\KpiCalculatorService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'password'])]
-#[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens;
+    use HasFactory;
+    use Notifiable;
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    protected $fillable = [
+        'nip',
+        'nama',
+        'jabatan',
+        'departemen',
+        'status_karyawan',
+        'tanggal_masuk',
+        'no_hp',
+        'email',
+        'role',
+        'password',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
+            'tanggal_masuk' => 'date',
             'password' => 'hashed',
+        ];
+    }
+
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
+    }
+
+    public function mappedTasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'mapped_by');
+    }
+
+    public function activityLogs(): HasMany
+    {
+        return $this->hasMany(ActivityLog::class);
+    }
+
+    public function isPegawai(): bool
+    {
+        return $this->role === 'pegawai';
+    }
+
+    public function isHrManager(): bool
+    {
+        return $this->role === 'hr_manager';
+    }
+
+    public function isDirektur(): bool
+    {
+        return $this->role === 'direktur';
+    }
+
+    public function canManageAllData(): bool
+    {
+        return $this->isHrManager() || $this->isDirektur();
+    }
+
+    public function isHR(): bool
+    {
+        return $this->canManageAllData();
+    }
+
+    public function getNameAttribute(): string
+    {
+        return $this->nama;
+    }
+
+    public function getPositionAttribute(): string
+    {
+        return $this->jabatan;
+    }
+
+    public function getDepartmentAttribute(): string
+    {
+        return $this->departemen;
+    }
+
+    public function calculateKpiScore(?int $month = null, ?int $year = null): object
+    {
+        $result = app(KpiCalculatorService::class)->calculateForUser($this, $month, $year);
+
+        $components = collect($result['components'])->map(function (array $component) {
+            return (object) [
+                'component' => (object) [
+                    'objective' => $component['objectives'],
+                    'weight' => $component['bobot'],
+                    'strategy' => $component['strategy'],
+                    'type' => $component['tipe'],
+                    'target' => $component['target'],
+                ],
+                'skor' => $component['skor'],
+                'bobotSkor' => $component['nilai_bobot'],
+                'linkedCount' => $component['jumlah_task'],
+            ];
+        })->all();
+
+        return (object) [
+            'total' => $result['total'],
+            'predikat' => $result['predikat'],
+            'components' => $components,
         ];
     }
 }

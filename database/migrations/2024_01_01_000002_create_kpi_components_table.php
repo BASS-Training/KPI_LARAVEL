@@ -10,13 +10,14 @@ return new class extends Migration
     {
         Schema::create('kpi_components', function (Blueprint $table) {
             $table->id();
-            $table->string('position'); // jabatan
-            $table->string('objective');
+            $table->string('jabatan');
+            $table->string('objectives');
             $table->text('strategy');
-            $table->decimal('weight', 3, 2); // bobot 0-1
-            $table->decimal('target', 15, 2)->nullable();
-            $table->string('type'); // zero_delay, zero_error, zero_complaint, achievement, csi
-            $table->string('note')->nullable();
+            $table->decimal('bobot', 4, 2);
+            $table->decimal('target', 20, 2)->nullable();
+            $table->enum('tipe', ['zero_delay', 'zero_error', 'zero_complaint', 'achievement', 'csi']);
+            $table->text('catatan')->nullable();
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }

@@ -6,16 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class Setting extends Model
 {
-    protected $fillable = ['key', 'value'];
+    protected $fillable = [
+        'key',
+        'value',
+    ];
 
-    public static function get($key, $default = null)
+    public static function setValue(string $key, mixed $value): self
     {
-        $setting = static::where('key', $key)->first();
-        return $setting ? $setting->value : $default;
-    }
-
-    public static function set($key, $value)
-    {
-        return static::updateOrCreate(['key' => $key], ['value' => $value]);
+        return static::updateOrCreate(
+            ['key' => $key],
+            ['value' => is_scalar($value) || $value === null ? $value : json_encode($value)]
+        );
     }
 }

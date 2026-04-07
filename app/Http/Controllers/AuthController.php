@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Employee;
+use App\Models\User;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
@@ -20,8 +20,8 @@ class AuthController extends Controller
             'name' => 'required'
         ]);
 
-        $employee = Employee::where('nip', $request->nip)
-            ->where('name', $request->name)
+        $employee = User::where('nip', $request->nip)
+            ->where('nama', $request->name)
             ->first();
 
         if (!$employee) {

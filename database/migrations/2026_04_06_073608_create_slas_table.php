@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('slas', function (Blueprint $table) {
+        Schema::create('sla', function (Blueprint $table) {
             $table->id();
-            $table->string('task_name');
-            $table->string('position');
-            $table->unsignedInteger('hours');
-            $table->text('description')->nullable();
+            $table->string('nama_pekerjaan');
+            $table->string('jabatan');
+            $table->unsignedInteger('durasi_jam');
+            $table->text('keterangan')->nullable();
             $table->timestamps();
         });
     }
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('slas');
+        Schema::dropIfExists('sla');
     }
 };

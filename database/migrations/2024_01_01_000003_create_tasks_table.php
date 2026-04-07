@@ -10,17 +10,21 @@ return new class extends Migration
     {
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('employee_id')->constrained()->onDelete('cascade');
-            $table->date('task_date');
-            $table->string('title');
-            $table->string('type')->nullable();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->date('tanggal');
+            $table->string('judul');
+            $table->string('jenis_pekerjaan');
             $table->enum('status', ['Selesai', 'Dalam Proses', 'Pending'])->default('Pending');
-            $table->time('start_time')->nullable();
-            $table->time('end_time')->nullable();
-            $table->boolean('has_delay')->default(false);
-            $table->boolean('has_error')->default(false);
-            $table->boolean('has_complaint')->default(false);
-            $table->text('description')->nullable();
+            $table->time('waktu_mulai')->nullable();
+            $table->time('waktu_selesai')->nullable();
+            $table->boolean('ada_delay')->default(false);
+            $table->boolean('ada_error')->default(false);
+            $table->boolean('ada_komplain')->default(false);
+            $table->text('deskripsi')->nullable();
+            $table->foreignId('kpi_component_id')->nullable()->constrained('kpi_components')->nullOnDelete();
+            $table->decimal('manual_score', 4, 2)->nullable();
+            $table->foreignId('mapped_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('mapped_at')->nullable();
             $table->timestamps();
         });
     }

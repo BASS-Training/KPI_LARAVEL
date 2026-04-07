@@ -13,9 +13,15 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
+            $table->string('nip')->unique();
+            $table->string('nama');
+            $table->string('jabatan');
+            $table->string('departemen');
+            $table->string('status_karyawan');
+            $table->date('tanggal_masuk');
+            $table->string('no_hp')->nullable();
+            $table->string('email')->nullable()->unique();
+            $table->enum('role', ['pegawai', 'hr_manager', 'direktur'])->default('pegawai');
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();

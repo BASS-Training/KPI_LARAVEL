@@ -6,7 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Sla extends Model
 {
+    protected $table = 'sla';
+
     protected $fillable = [
-        'task_name', 'position', 'hours', 'description'
+        'nama_pekerjaan',
+        'jabatan',
+        'durasi_jam',
+        'keterangan',
     ];
 }

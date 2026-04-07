@@ -8,17 +8,52 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class KpiComponent extends Model
 {
     protected $fillable = [
-        'position', 'objective', 'strategy', 'weight', 
-        'target', 'type', 'note'
+        'jabatan',
+        'objectives',
+        'strategy',
+        'bobot',
+        'target',
+        'tipe',
+        'catatan',
+        'is_active',
     ];
 
-    protected $casts = [
-        'weight' => 'decimal:2',
-        'target' => 'decimal:2',
-    ];
-
-    public function taskMappings(): HasMany
+    protected function casts(): array
     {
-        return $this->hasMany(TaskKpiMapping::class);
+        return [
+            'bobot' => 'decimal:2',
+            'target' => 'decimal:2',
+            'is_active' => 'boolean',
+        ];
+    }
+
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
+    }
+
+    public function getObjectiveAttribute(): string
+    {
+        return $this->objectives;
+    }
+
+    public function getWeightAttribute(): float
+    {
+        return (float) $this->bobot;
+    }
+
+    public function getTypeAttribute(): string
+    {
+        return $this->tipe;
+    }
+
+    public function getNoteAttribute(): ?string
+    {
+        return $this->catatan;
+    }
+
+    public function getPositionAttribute(): string
+    {
+        return $this->jabatan;
     }
 }

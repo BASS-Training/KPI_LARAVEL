@@ -12,14 +12,24 @@
 
     @if($user)
         <div class="app-shell">
-            <aside class="app-sidebar app-sidebar-panel">
-                <div class="border-b border-white/10 px-5 pb-4 pt-6">
-                    <div class="page-hero-meta !border-white/15 !bg-white/10 !text-white/80">Dashboard Monitoring KPI</div>
-                    <h2 class="mt-4 text-[15px] font-bold leading-6">PT. BASS Training Center &amp; Consultant</h2>
-                    <p class="mt-2 text-xs leading-5 text-white/65">Monitoring kinerja pegawai, progres pekerjaan, dan kualitas operasional dalam satu panel.</p>
+            <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+            <aside id="app-sidebar" class="app-sidebar app-sidebar-panel">
+                <div class="flex items-start justify-between gap-3 border-b border-white/10 px-5 pb-4 pt-6">
+                    <div>
+                        <div class="page-hero-meta !border-white/15 !bg-white/10 !text-white/80">Dashboard Monitoring KPI</div>
+                        <h2 class="mt-4 text-[15px] font-bold leading-6">PT. BASS Training Center &amp; Consultant</h2>
+                        <p class="mt-2 text-xs leading-5 text-white/65">Monitoring kinerja pegawai, progres pekerjaan, dan kualitas operasional dalam satu panel.</p>
+                    </div>
+                    <button id="sidebar-close" type="button" class="mt-0.5 inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white/80 transition hover:bg-white/15 lg:hidden" aria-label="Tutup menu">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path d="m6 6 12 12M18 6 6 18"/>
+                        </svg>
+                    </button>
                 </div>
 
                 <nav class="flex-1 space-y-1 overflow-y-auto px-4 py-4">
+                    <div class="sidebar-section-title !pt-0">Menu Utama</div>
                     <a href="{{ route('dashboard') }}" class="sidebar-link {{ request()->routeIs('dashboard') ? 'is-active' : '' }}">
                         <span class="sidebar-link-icon">
                             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -66,7 +76,7 @@
 
                     @if($user->isHR())
                         <div class="mt-4 border-t border-white/10 pt-4">
-                            <div class="px-4 pb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/45">HR Panel</div>
+                            <div class="sidebar-section-title">HR Panel</div>
                             <a href="{{ route('employees.index') }}" class="sidebar-link {{ request()->routeIs('employees.*') ? 'is-active' : '' }}">
                                 <span class="sidebar-link-icon">
                                     <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -118,9 +128,16 @@
             <main class="app-main">
                 <header class="app-topbar">
                     <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                        <div>
+                        <div class="flex items-start gap-3">
+                            <button id="sidebar-open" type="button" class="topbar-menu-button" aria-label="Buka menu">
+                                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path d="M4 7h16M4 12h16M4 17h16"/>
+                                </svg>
+                            </button>
+                            <div>
                             <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">PT. BASS Training Center &amp; Consultant</p>
                             <h1 class="mt-1 text-xl font-bold text-slate-900">@yield('title', 'Dashboard')</h1>
+                            </div>
                         </div>
                         <div class="flex items-center gap-3 self-start md:self-auto">
                             <div class="hidden rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-right md:block">
@@ -148,6 +165,29 @@
         setTimeout(() => {
             document.querySelectorAll('.alert').forEach((el) => el.remove());
         }, 3000);
+
+        const sidebar = document.getElementById('app-sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const openSidebarButton = document.getElementById('sidebar-open');
+        const closeSidebarButton = document.getElementById('sidebar-close');
+
+        const toggleSidebar = (isOpen) => {
+            if (!sidebar || !sidebarOverlay) return;
+
+            sidebar.classList.toggle('is-open', isOpen);
+            sidebarOverlay.classList.toggle('is-open', isOpen);
+            document.body.classList.toggle('overflow-hidden', isOpen);
+        };
+
+        openSidebarButton?.addEventListener('click', () => toggleSidebar(true));
+        closeSidebarButton?.addEventListener('click', () => toggleSidebar(false));
+        sidebarOverlay?.addEventListener('click', () => toggleSidebar(false));
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1024) {
+                toggleSidebar(false);
+            }
+        });
     </script>
 </body>
 </html>

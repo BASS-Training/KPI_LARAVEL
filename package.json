@@ -15,5 +15,16 @@
         "postcss": "^8.5.8",
         "tailwindcss": "^4.2.2",
         "vite": "^8.0.0"
+    },
+    "dependencies": {
+        "@vitejs/plugin-vue": "^6.0.5",
+        "class-variance-authority": "^0.7.1",
+        "clsx": "^2.1.1",
+        "lucide-vue-next": "^1.0.0",
+        "pinia": "^2.3.1",
+        "radix-vue": "^1.9.17",
+        "tailwind-merge": "^3.5.0",
+        "vue": "^3.5.32",
+        "vue-router": "^4.6.4"
     }
 }

@@ -4,32 +4,81 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Task extends Model
 {
-    protected $table = 'tasks';
-    
     protected $fillable = [
-        'employee_id', 'task_date', 'title', 'type', 'status',
-        'start_time', 'end_time', 'has_delay', 'has_error', 
-        'has_complaint', 'description'
+        'user_id',
+        'tanggal',
+        'judul',
+        'jenis_pekerjaan',
+        'status',
+        'waktu_mulai',
+        'waktu_selesai',
+        'ada_delay',
+        'ada_error',
+        'ada_komplain',
+        'deskripsi',
+        'kpi_component_id',
+        'manual_score',
+        'mapped_by',
+        'mapped_at',
     ];
 
-    protected $casts = [
-        'task_date' => 'date',
-        'has_delay' => 'boolean',
-        'has_error' => 'boolean',
-        'has_complaint' => 'boolean',
-    ];
-
-    public function employee(): BelongsTo
+    protected function casts(): array
     {
-        return $this->belongsTo(Employee::class);
+        return [
+            'tanggal' => 'date',
+            'ada_delay' => 'boolean',
+            'ada_error' => 'boolean',
+            'ada_komplain' => 'boolean',
+            'manual_score' => 'decimal:2',
+            'mapped_at' => 'datetime',
+        ];
     }
 
-    public function kpiMapping(): HasOne
+    public function user(): BelongsTo
     {
-        return $this->hasOne(TaskKpiMapping::class);
+        return $this->belongsTo(User::class);
+    }
+
+    public function kpiComponent(): BelongsTo
+    {
+        return $this->belongsTo(KpiComponent::class);
+    }
+
+    public function mapper(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'mapped_by');
+    }
+
+    public function getTaskDateAttribute()
+    {
+        return $this->tanggal;
+    }
+
+    public function getTitleAttribute(): string
+    {
+        return $this->judul;
+    }
+
+    public function getTypeAttribute(): string
+    {
+        return $this->jenis_pekerjaan;
+    }
+
+    public function getHasDelayAttribute(): bool
+    {
+        return (bool) $this->ada_delay;
+    }
+
+    public function getHasErrorAttribute(): bool
+    {
+        return (bool) $this->ada_error;
+    }
+
+    public function getHasComplaintAttribute(): bool
+    {
+        return (bool) $this->ada_komplain;
     }
 }

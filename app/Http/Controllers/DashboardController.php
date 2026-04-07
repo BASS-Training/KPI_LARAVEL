@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
-use App\Models\Employee;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -16,12 +16,12 @@ class DashboardController extends Controller
             return redirect()->route('login');
         }
 
-        $tasks = Task::where('employee_id', $user->id)->get();
+        $tasks = Task::where('user_id', $user->id)->get();
         $kpi = $user->calculateKpiScore();
         
         $recentTasks = $tasks->sortByDesc('created_at')->take(5);
         
-        $rankedEmployees = Employee::whereNotIn('position', ['Direktur Utama', 'Direktur'])
+        $rankedEmployees = User::whereNotIn('jabatan', ['Direktur Utama', 'Direktur'])
             ->get()
             ->map(function($emp) {
                 $kpi = $emp->calculateKpiScore();
