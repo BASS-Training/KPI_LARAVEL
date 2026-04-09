@@ -13,10 +13,33 @@ class KpiComponentController extends ApiController
 {
     public function index(Request $request)
     {
-        $components = KpiComponent::query()
-            ->when($request->filled('jabatan'), fn ($query) => $query->where('jabatan', $request->string('jabatan')))
-            ->orderBy('jabatan')
-            ->paginate((int) $request->input('per_page', 15));
+        $user  = $request->user();
+        $query = KpiComponent::query()->with(['division', 'department']);
+
+        if ($user->isPegawai()) {
+            // Pegawai: only show components that match their profile.
+            // NULL on a field means "applies to everyone in that dimension".
+            $query
+                ->where('is_active', true)
+                ->where(fn ($q) => $q->whereNull('division_id')
+                    ->orWhere('division_id', $user->division_id))
+                ->where(fn ($q) => $q->whereNull('department_id')
+                    ->orWhere('department_id', $user->department_id))
+                ->where(fn ($q) => $q->whereNull('position_id')
+                    ->orWhere('position_id', $user->position_id));
+        } else {
+            // HR / Direktur: show all, optional filters
+            $query
+                ->when($request->filled('division_id'),   fn ($q) => $q->where('division_id',   $request->integer('division_id')))
+                ->when($request->filled('department_id'), fn ($q) => $q->where('department_id', $request->integer('department_id')))
+                ->when($request->filled('position_id'),   fn ($q) => $q->where('position_id',   $request->integer('position_id')))
+                ->when($request->filled('jabatan'),        fn ($q) => $q->where('jabatan',        $request->string('jabatan')))
+                ->when($request->filled('is_active'),      fn ($q) => $q->where('is_active',      $request->boolean('is_active')));
+        }
+
+        $components = $query
+            ->orderBy('objectives')
+            ->paginate((int) $request->input('per_page', 100));
 
         return $this->paginated(KpiComponentResource::collection($components), $components);
     }
@@ -34,7 +57,11 @@ class KpiComponentController extends ApiController
             $request
         );
 
-        return $this->resource(new KpiComponentResource($component), 'Komponen KPI berhasil ditambahkan.', Response::HTTP_CREATED);
+        return $this->resource(
+            new KpiComponentResource($component->load(['division', 'department'])),
+            'Komponen KPI berhasil ditambahkan.',
+            Response::HTTP_CREATED
+        );
     }
 
     public function update(StoreKpiComponentRequest $request, KpiComponent $kpiComponent)
@@ -50,7 +77,10 @@ class KpiComponentController extends ApiController
             $request
         );
 
-        return $this->resource(new KpiComponentResource($kpiComponent->refresh()), 'Komponen KPI berhasil diperbarui.');
+        return $this->resource(
+            new KpiComponentResource($kpiComponent->refresh()->load(['division', 'department'])),
+            'Komponen KPI berhasil diperbarui.'
+        );
     }
 
     public function destroy(Request $request, KpiComponent $kpiComponent)

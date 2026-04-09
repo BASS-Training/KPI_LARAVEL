@@ -16,6 +16,24 @@ export const usePositionStore = defineStore('position', () => {
         }
     }
 
+    async function createPosition(payload) {
+        const { data: resp } = await api.post('/positions', payload);
+        positions.value.push(resp.data);
+        return resp.data;
+    }
+
+    async function updatePosition(id, payload) {
+        const { data: resp } = await api.put(`/positions/${id}`, payload);
+        const idx = positions.value.findIndex(p => p.id === id);
+        if (idx !== -1) positions.value[idx] = resp.data;
+        return resp.data;
+    }
+
+    async function deletePosition(id) {
+        await api.delete(`/positions/${id}`);
+        positions.value = positions.value.filter(p => p.id !== id);
+    }
+
     const asOptions = computed(() =>
         positions.value.map(p => ({
             value: p.id,
@@ -34,5 +52,9 @@ export const usePositionStore = defineStore('position', () => {
         return positions.value.find(p => p.id === id) ?? null;
     }
 
-    return { positions, isLoading, fetchPositions, asOptions, byDepartment, findById };
+    return {
+        positions, isLoading,
+        fetchPositions, createPosition, updatePosition, deletePosition,
+        asOptions, byDepartment, findById,
+    };
 });

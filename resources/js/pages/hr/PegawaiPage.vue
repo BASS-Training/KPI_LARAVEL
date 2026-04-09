@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import Dialog from '@/components/ui/Dialog.vue';
 import Input from '@/components/ui/Input.vue';
@@ -24,8 +24,9 @@ const editMode    = ref(false);
 const selectedId  = ref(null);
 const submitting  = ref(false);
 const formError   = ref('');
-const deleteState = ref({ open: false, id: null, name: '' });
-const deleting    = ref(false);
+const deleteState        = ref({ open: false, id: null, name: '' });
+const deleting           = ref(false);
+const syncingHierarchy   = ref(false);
 
 const emptyForm = () => ({
     nip:             '',
@@ -47,6 +48,7 @@ const errors = reactive({});
 
 // When division changes → reset dept & position
 watch(() => form.division_id, () => {
+    if (syncingHierarchy.value) return;
     form.department_id = null;
     form.departemen    = '';
     form.position_id   = null;
@@ -55,6 +57,7 @@ watch(() => form.division_id, () => {
 
 // When dept changes → fill departemen string & reset position
 watch(() => form.department_id, (id) => {
+    if (syncingHierarchy.value) return;
     const dept = deptStore.findById(id);
     form.departemen  = dept?.nama ?? '';
     form.position_id = null;
@@ -63,6 +66,7 @@ watch(() => form.department_id, (id) => {
 
 // When position changes → fill jabatan string
 watch(() => form.position_id, (id) => {
+    if (syncingHierarchy.value) return;
     const pos = posStore.findById(id);
     form.jabatan = pos?.nama ?? '';
 });
@@ -106,6 +110,7 @@ function openCreate() {
 }
 
 function openEdit(emp) {
+    syncingHierarchy.value = true;   // must be set BEFORE resetForm so reset-watchers are blocked
     editMode.value   = true;
     selectedId.value = emp.id;
     resetForm();
@@ -123,6 +128,8 @@ function openEdit(emp) {
         email:           emp.email ?? '',
         role:            emp.role ?? 'pegawai',
     });
+    // Turn off flag AFTER the async watcher flush, not synchronously
+    nextTick(() => { syncingHierarchy.value = false; });
     showForm.value = true;
 }
 

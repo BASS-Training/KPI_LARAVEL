@@ -65,6 +65,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/departments/{department}', [DepartmentController::class, 'destroy'])->middleware('role:hr_manager,direktur');
 
     Route::get('/positions', [PositionController::class, 'index']);
+    Route::post('/positions', [PositionController::class, 'store'])->middleware('role:hr_manager,direktur');
+    Route::put('/positions/{position}', [PositionController::class, 'update'])->middleware('role:hr_manager,direktur');
+    Route::delete('/positions/{position}', [PositionController::class, 'destroy'])->middleware('role:hr_manager,direktur');
 
     // Divisions
     Route::get('/divisions', [DivisionController::class, 'index']);

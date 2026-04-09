@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { readStoredUser } from '@/lib/authStorage';
 
 // ─── Page imports (lazy-loaded untuk performa lebih baik) ─────────────────
 const LoginPage = () => import('@/pages/LoginPage.vue');
@@ -23,6 +24,7 @@ const HRAnalyticsPage        = () => import('@/pages/hr/AnalyticsPage.vue');
 const KpiReportReviewPage    = () => import('@/pages/hr/KpiReportReviewPage.vue');
 const EmployeeKpiPage        = () => import('@/pages/hr/EmployeeKpiPage.vue');
 const ActivityLogsPage       = () => import('@/pages/hr/ActivityLogsPage.vue');
+const PositionPage           = () => import('@/pages/hr/PositionPage.vue');
 
 // Pegawai (new)
 const KpiReportPage = () => import('@/pages/pegawai/KpiReportPage.vue');
@@ -129,6 +131,11 @@ const routes = [
         component: ActivityLogsPage,
         meta: { requiresAuth: true, roles: ['hr_manager', 'direktur'] },
     },
+    {
+        path: '/hr/jabatan',
+        component: PositionPage,
+        meta: { requiresAuth: true, roles: ['hr_manager', 'direktur'] },
+    },
 
     // Direktur
     {
@@ -170,7 +177,7 @@ const router = createRouter({
 // ─── Navigation guards ─────────────────────────────────────────────────────
 router.beforeEach((to, _from, next) => {
     const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    const user = readStoredUser();
 
     if (token && !user) {
         localStorage.removeItem('token');

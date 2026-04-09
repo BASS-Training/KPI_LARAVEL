@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import Dialog from '@/components/ui/Dialog.vue';
 import Input from '@/components/ui/Input.vue';
@@ -84,6 +84,7 @@ watch(() => form.department_id, (id) => {
 });
 
 watch(() => form.position_id, (id) => {
+    if (syncingHierarchy.value) return;
     const position = posStore.findById(id);
     form.jabatan = position?.nama ?? '';
 });
@@ -109,33 +110,34 @@ function openCreate() {
 }
 
 function openEdit(item) {
-    editMode.value = true;
+    syncingHierarchy.value = true;   // before resetForm so reset-watchers are also blocked
+    editMode.value   = true;
     selectedId.value = item.id;
     resetForm();
 
-    const selectedPosition = item.position_id ? posStore.findById(item.position_id) : null;
-    const selectedDepartment = selectedPosition?.department_id
-        ? deptStore.findById(selectedPosition.department_id)
-        : null;
+    // department_id is now stored on the item directly (API returns it)
+    // Fall back to inferring from position if not present
+    const deptId = item.department_id
+        ?? (item.position_id ? deptStore.findById(posStore.findById(item.position_id)?.department_id)?.id : null)
+        ?? null;
 
-    syncingHierarchy.value = true;
     Object.assign(form, {
-        jabatan: item.jabatan ?? '',
-        division_id: item.division_id ?? selectedDepartment?.division_id ?? null,
-        department_id: selectedDepartment?.id ?? null,
-        position_id: item.position_id ?? null,
-        objectives: item.objectives ?? '',
-        strategy: item.strategy ?? '',
-        bobot: item.bobot ?? 0,
-        target: item.target ?? '',
-        satuan: item.satuan ?? '',
-        tipe: item.tipe ?? 'achievement',
-        kpi_type: item.kpi_type ?? null,
-        period: item.period ?? 'monthly',
-        catatan: item.catatan ?? '',
-        is_active: Boolean(item.is_active),
+        jabatan:       item.jabatan       ?? '',
+        division_id:   item.division_id   ?? null,
+        department_id: deptId,
+        position_id:   item.position_id   ?? null,
+        objectives:    item.objectives    ?? '',
+        strategy:      item.strategy      ?? '',
+        bobot:         item.bobot         ?? 0,
+        target:        item.target        ?? '',
+        satuan:        item.satuan        ?? '',
+        tipe:          item.tipe          ?? 'achievement',
+        kpi_type:      item.kpi_type      ?? null,
+        period:        item.period        ?? 'monthly',
+        catatan:       item.catatan       ?? '',
+        is_active:     Boolean(item.is_active),
     });
-    syncingHierarchy.value = false;
+    nextTick(() => { syncingHierarchy.value = false; });
     showForm.value = true;
 }
 
@@ -179,19 +181,20 @@ async function submit() {
 
     try {
         const payload = {
-            jabatan: form.jabatan,
-            division_id: form.division_id,
-            position_id: form.position_id,
-            objectives: form.objectives,
-            strategy: form.strategy,
-            bobot: Number(form.bobot),
-            target: form.target === '' ? null : Number(form.target),
-            satuan: form.satuan,
-            tipe: form.tipe,
-            kpi_type: form.kpi_type,
-            period: form.period,
-            catatan: form.catatan,
-            is_active: form.is_active,
+            jabatan:       form.jabatan,
+            division_id:   form.division_id,
+            department_id: form.department_id,
+            position_id:   form.position_id,
+            objectives:    form.objectives,
+            strategy:      form.strategy,
+            bobot:         Number(form.bobot),
+            target:        form.target === '' ? null : Number(form.target),
+            satuan:        form.satuan,
+            tipe:          form.tipe,
+            kpi_type:      form.kpi_type,
+            period:        form.period,
+            catatan:       form.catatan,
+            is_active:     form.is_active,
         };
 
         if (editMode.value && selectedId.value) {
@@ -278,12 +281,14 @@ const periodLabels = {
                                     <span class="truncate text-sm font-semibold text-slate-900">{{ item.objectives }}</span>
                                     <span v-if="!item.is_active" class="badge-warning text-[10px]">Nonaktif</span>
                                 </div>
-                                <div class="mt-0.5 truncate text-xs text-slate-500">
-                                    {{ item.jabatan }}
-                                    <template v-if="item.division_id"> · {{ item.division?.nama ?? '-' }}</template>
-                                    · {{ tipeLabels[item.tipe] ?? item.tipe }}
-                                    · Bobot {{ item.bobot }}
-                                    <template v-if="item.target"> · Target {{ item.target }}{{ item.satuan ? ' ' + item.satuan : '' }}</template>
+                                <div class="mt-0.5 flex flex-wrap gap-x-2 text-xs text-slate-500">
+                                    <span v-if="item.division?.nama" class="badge-neutral !text-[10px]">{{ item.division.nama }}</span>
+                                    <span v-if="item.department?.nama" class="badge-neutral !text-[10px]">{{ item.department.nama }}</span>
+                                    <span v-if="item.jabatan" class="badge-info !text-[10px]">{{ item.jabatan }}</span>
+                                    <span v-if="!item.division_id && !item.department_id && !item.position_id" class="badge-neutral !text-[10px]">Semua</span>
+                                    <span>· {{ tipeLabels[item.tipe] ?? item.tipe }}</span>
+                                    <span>· Bobot {{ item.bobot }}</span>
+                                    <span v-if="item.target">· Target {{ item.target }}{{ item.satuan ? ' ' + item.satuan : '' }}</span>
                                 </div>
                             </div>
                             <div class="hidden min-w-[180px] truncate text-sm text-slate-600 md:block">{{ item.strategy }}</div>
@@ -327,12 +332,12 @@ const periodLabels = {
                 <div class="md:col-span-2">
                     <label class="form-label">Jabatan <span class="text-red-500">*</span></label>
                     <select v-model="form.position_id" class="form-input">
-                        <option :value="null">— Pilih Jabatan —</option>
+                        <option :value="null">— Semua Jabatan (berlaku untuk semua) —</option>
                         <option v-for="position in filteredPositions" :key="position.id" :value="position.id">{{ position.nama }}</option>
                     </select>
                     <p v-if="errors.jabatan" class="mt-1 text-xs text-red-500">{{ errors.jabatan }}</p>
-                    <p v-else-if="form.jabatan" class="mt-1 text-xs text-slate-500">
-                        Jabatan tersimpan: {{ form.jabatan }}
+                    <p v-else class="mt-1 text-[11px] text-slate-400">
+                        Kosongkan jika komponen ini berlaku untuk semua jabatan pada divisi/departemen yang dipilih.
                     </p>
                 </div>
 

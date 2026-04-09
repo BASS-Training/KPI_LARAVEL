@@ -16,6 +16,7 @@ const pageMap = {
     '/hr/dashboard': { title: 'Beranda HR', subtitle: 'PT. BASS Training Center & Consultant' },
     '/hr/pegawai': { title: 'Manajemen Pegawai', subtitle: 'PT. BASS Training Center & Consultant' },
     '/hr/mapping': { title: 'Mapping KPI', subtitle: 'PT. BASS Training Center & Consultant' },
+    '/hr/jabatan':        { title: 'Manajemen Jabatan', subtitle: 'PT. BASS Training Center & Consultant' },
     '/hr/kpi-components': { title: 'Komponen KPI', subtitle: 'PT. BASS Training Center & Consultant' },
     '/hr/sla': { title: 'SLA Pekerjaan', subtitle: 'PT. BASS Training Center & Consultant' },
     '/hr/settings': { title: 'Pengaturan', subtitle: 'PT. BASS Training Center & Consultant' },

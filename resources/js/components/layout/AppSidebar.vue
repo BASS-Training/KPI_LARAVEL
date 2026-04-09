@@ -49,6 +49,7 @@ const navMap = {
                 { label: 'Manajemen Pegawai', to: '/hr/pegawai', icon: `<path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>` },
                 { label: 'Manajemen Divisi', to: '/hr/divisi', icon: `<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>` },
                 { label: 'Manajemen Departemen', to: '/hr/departemen', icon: `<path d="M3 9h18M9 21V9m6 12V9M3 3h18v18H3z"/>` },
+                { label: 'Manajemen Jabatan', to: '/hr/jabatan', icon: `<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>` },
                 { label: 'Komponen KPI', to: '/hr/kpi-components', icon: `<circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48 2.83-2.83"/>` },
                 { label: 'SLA Pekerjaan', to: '/hr/sla', icon: `<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>` },
                 { label: 'Pengaturan', to: '/hr/settings', icon: `<path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/><path d="M3 12h2m14 0h2M12 3v2m0 14v2M5.64 5.64l1.41 1.41m9.9 9.9 1.41 1.41m0-12.72-1.41 1.41m-9.9 9.9-1.41 1.41"/>` },

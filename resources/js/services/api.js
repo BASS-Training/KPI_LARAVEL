@@ -33,13 +33,30 @@ export async function downloadFile(url, options = {}) {
         fallbackFilename = 'download',
     } = options;
 
-    const response = await api.request({
-        url,
-        method,
-        params,
-        data,
-        responseType: 'blob',
-    });
+    let response;
+
+    try {
+        response = await api.request({
+            url,
+            method,
+            params,
+            data,
+            responseType: 'blob',
+        });
+    } catch (error) {
+        const blob = error.response?.data;
+
+        if (blob instanceof Blob && blob.type?.includes('application/json')) {
+            try {
+                const payload = JSON.parse(await blob.text());
+                error.userMessage = payload?.message || error.userMessage;
+            } catch {
+                // keep the original error message when blob parsing fails
+            }
+        }
+
+        throw error;
+    }
 
     const blob = response.data instanceof Blob
         ? response.data

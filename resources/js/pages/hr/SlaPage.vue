@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import Dialog from '@/components/ui/Dialog.vue';
 import Input from '@/components/ui/Input.vue';
@@ -77,6 +77,7 @@ watch(() => form.department_id, (id) => {
 });
 
 watch(() => form.position_id, (id) => {
+    if (syncingHierarchy.value) return;
     const position = posStore.findById(id);
     form.jabatan = position?.nama ?? '';
 });
@@ -102,26 +103,27 @@ function openCreate() {
 }
 
 function openEdit(item) {
+    syncingHierarchy.value = true;   // before resetForm so reset-watchers are also blocked
     editMode.value = true;
     selectedId.value = item.id;
     resetForm();
 
-    const selectedPosition = item.position_id ? posStore.findById(item.position_id) : null;
+    // Infer division from position → department chain (SLA doesn't store div/dept directly)
+    const selectedPosition   = item.position_id ? posStore.findById(item.position_id) : null;
     const selectedDepartment = selectedPosition?.department_id
         ? deptStore.findById(selectedPosition.department_id)
         : null;
 
-    syncingHierarchy.value = true;
     Object.assign(form, {
         nama_pekerjaan: item.nama_pekerjaan ?? '',
-        division_id: selectedDepartment?.division_id ?? null,
-        department_id: selectedDepartment?.id ?? null,
-        jabatan: item.jabatan ?? '',
-        position_id: item.position_id ?? null,
-        durasi_jam: item.durasi_jam ?? '',
-        keterangan: item.keterangan ?? '',
+        division_id:    selectedDepartment?.division_id ?? null,
+        department_id:  selectedDepartment?.id ?? null,
+        jabatan:        item.jabatan ?? '',
+        position_id:    item.position_id ?? null,
+        durasi_jam:     item.durasi_jam ?? '',
+        keterangan:     item.keterangan ?? '',
     });
-    syncingHierarchy.value = false;
+    nextTick(() => { syncingHierarchy.value = false; });
     showForm.value = true;
 }
 
@@ -280,9 +282,6 @@ async function confirmDelete() {
                         </option>
                     </select>
                     <p v-if="errors.jabatan" class="mt-1 text-xs text-red-500">{{ errors.jabatan }}</p>
-                    <p v-else-if="form.jabatan" class="mt-1 text-xs text-slate-500">
-                        Jabatan tersimpan: {{ form.jabatan }}
-                    </p>
                 </div>
 
                 <div>
