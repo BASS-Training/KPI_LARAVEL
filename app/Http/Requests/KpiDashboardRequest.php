@@ -17,6 +17,7 @@ class KpiDashboardRequest extends SanitizedFormRequest
             'period_type' => ['nullable', Rule::in(['weekly', 'monthly'])],
             'period' => ['nullable', 'date'],
             'role_id' => ['nullable', 'integer', 'exists:roles,id'],
+            'employee_id' => ['nullable', 'integer', 'exists:users,id'],
         ];
     }
 
@@ -26,6 +27,7 @@ class KpiDashboardRequest extends SanitizedFormRequest
             'period_type' => $this->input('period_type', 'monthly'),
             'period' => $this->input('period', now()->toDateString()),
             'role_id' => $this->integer('role_id') ?: null,
+            'employee_id' => $this->integer('employee_id') ?: null,
         ];
     }
 }

@@ -81,9 +81,22 @@ class User extends Authenticatable
         return $this->hasMany(KpiReport::class);
     }
 
-    public function notifications(): HasMany
+    public function kpiNotifications(): HasMany
     {
         return $this->hasMany(KpiNotification::class);
+    }
+
+    public function hasKpiRole(string $role): bool
+    {
+        if (method_exists($this, 'hasRole')) {
+            return $this->hasRole($role);
+        }
+
+        if ($this->role === $role) {
+            return true;
+        }
+
+        return $this->roleRef?->slug === $role;
     }
 
     public function activityLogs(): HasMany

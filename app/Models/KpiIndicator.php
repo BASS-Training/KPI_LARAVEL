@@ -12,6 +12,7 @@ class KpiIndicator extends Model
         'name',
         'description',
         'weight',
+        'default_target_value',
         'role_id',
     ];
 
@@ -19,6 +20,7 @@ class KpiIndicator extends Model
     {
         return [
             'weight' => 'decimal:2',
+            'default_target_value' => 'decimal:2',
         ];
     }
 

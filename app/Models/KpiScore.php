@@ -15,6 +15,7 @@ class KpiScore extends Model
         'period_end',
         'raw_score',
         'normalized_score',
+        'status',
         'grade',
         'breakdown',
     ];

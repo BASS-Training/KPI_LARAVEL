@@ -12,7 +12,11 @@ class CheckRole
     {
         $user = $request->user();
 
-        if (!$user || !in_array($user->role, $roles, true)) {
+        $allowed = $user
+            ? collect($roles)->contains(fn (string $role) => $user->hasKpiRole($role))
+            : false;
+
+        if (!$allowed) {
             return response()->json([
                 'success' => false,
                 'message' => 'Akses ditolak.',

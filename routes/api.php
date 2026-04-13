@@ -41,8 +41,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/tasks/{task}/mapping', [TaskController::class, 'mapping'])->middleware('role:hr_manager,direktur');
 
     Route::get('/kpi/me', [KpiController::class, 'me']);
-    Route::get('/kpi/ranking', [KpiController::class, 'ranking']);
+    Route::get('/kpi/ranking', [KpiManagementController::class, 'ranking']);
     Route::get('/kpi/dashboard', [KpiManagementController::class, 'dashboard']);
+    Route::get('/kpi/export', [ExportController::class, 'export'])->middleware('role:admin,hr_manager,direktur');
     Route::get('/kpi/user/{id}', [KpiManagementController::class, 'showUser']);
     Route::post('/kpi/input', [KpiManagementController::class, 'input'])->middleware('role:hr_manager,direktur');
     Route::get('/kpi/{user}', [KpiController::class, 'show'])->middleware('role:hr_manager,direktur');
@@ -98,6 +99,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Export
     Route::prefix('export')->middleware('role:hr_manager,direktur')->group(function () {
         Route::get('/kpi/{user}/pdf', [ExportController::class, 'kpiPdf']);
+        Route::get('/kpi', [ExportController::class, 'export']);
         Route::get('/ranking/csv', [ExportController::class, 'rankingCsv']);
         Route::get('/reports/csv', [ExportController::class, 'reportsCsv']);
     });

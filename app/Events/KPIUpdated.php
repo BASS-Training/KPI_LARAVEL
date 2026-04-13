@@ -2,35 +2,46 @@
 
 namespace App\Events;
 
+use App\Models\KpiIndicator;
+use App\Models\KpiScore;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class KPIUpdated
+class KPIUpdated implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    /**
-     * Create a new event instance.
-     */
-    public function __construct()
-    {
-        //
+    public function __construct(
+        public readonly KpiScore $score,
+        public readonly ?KpiIndicator $indicator = null,
+    ) {
     }
 
-    /**
-     * Get the channels the event should broadcast on.
-     *
-     * @return array<int, Channel>
-     */
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('channel-name'),
+            new Channel('kpi-channel'),
+        ];
+    }
+
+    public function broadcastAs(): string
+    {
+        return 'kpi.updated';
+    }
+
+    public function broadcastWith(): array
+    {
+        return [
+            'user_id' => $this->score->user_id,
+            'score' => (float) $this->score->normalized_score,
+            'status' => $this->score->status,
+            'indicator' => $this->indicator?->only(['id', 'name']),
+            'period_start' => optional($this->score->period_start)->toDateString(),
+            'period_type' => $this->score->period_type,
         ];
     }
 }

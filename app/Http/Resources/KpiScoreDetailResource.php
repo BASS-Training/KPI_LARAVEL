@@ -17,6 +17,7 @@ class KpiScoreDetailResource extends JsonResource
             'period_end' => optional($this->period_end)->toDateString(),
             'raw_score' => (float) $this->raw_score,
             'normalized_score' => (float) $this->normalized_score,
+            'status' => $this->status,
             'grade' => $this->grade,
             'rank' => $this->when(isset($this->rank), $this->rank),
             'breakdown' => KpiIndicatorBreakdownResource::collection(collect($this->breakdown ?? [])),

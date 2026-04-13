@@ -97,7 +97,7 @@
         inset-block: 0;
         left: 0;
         z-index: 40;
-        width: 240px;
+        /* width is controlled by Tailwind transition classes */
         display: flex;
         flex-direction: column;
     }
@@ -200,6 +200,110 @@
 
     .topbar-menu-button:hover {
         background-color: #f8fafc;
+    }
+
+    /* Dark mode topbar */
+    .dark .app-topbar {
+        background-color: rgba(15, 23, 42, 0.95);
+        border-color: rgba(255, 255, 255, 0.07);
+    }
+
+    .dark .topbar-menu-button {
+        background-color: #0f172a;
+        border-color: rgba(255, 255, 255, 0.1);
+        color: #94a3b8;
+    }
+
+    .dark .topbar-menu-button:hover {
+        background-color: #1e293b;
+    }
+
+    /* Topbar icon button (dark mode toggle, etc.) */
+    .topbar-icon-btn {
+        display: inline-flex;
+        height: 2rem;
+        width: 2rem;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.5rem;
+        border: 1px solid var(--border);
+        background-color: white;
+        color: #475569;
+        flex-shrink: 0;
+        transition: background-color 0.12s, color 0.12s;
+        cursor: pointer;
+    }
+
+    .topbar-icon-btn:hover {
+        background-color: #f1f5f9;
+        color: #0f172a;
+    }
+
+    .dark .topbar-icon-btn {
+        background-color: #0f172a;
+        border-color: rgba(255, 255, 255, 0.1);
+        color: #94a3b8;
+    }
+
+    .dark .topbar-icon-btn:hover {
+        background-color: #1e293b;
+        color: #e2e8f0;
+    }
+
+    /* ─── Pagination ─────────────────────────────────────────────────────────── */
+    .pagination-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 2rem;
+        height: 2rem;
+        padding: 0 0.5rem;
+        border-radius: 0.625rem;
+        border: 1px solid var(--border);
+        background-color: white;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: #475569;
+        cursor: pointer;
+        transition: background-color 0.12s, border-color 0.12s, color 0.12s;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+        background-color: #f8fafc;
+        border-color: #cbd5e1;
+    }
+
+    .pagination-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    .pagination-btn--active {
+        background-color: #0f172a;
+        border-color: #0f172a;
+        color: white;
+    }
+
+    .pagination-btn--active:hover {
+        background-color: #1e293b;
+    }
+
+    .dark .pagination-btn {
+        background-color: #0f172a;
+        border-color: rgba(255, 255, 255, 0.1);
+        color: #94a3b8;
+    }
+
+    .dark .pagination-btn:hover:not(:disabled) {
+        background-color: #1e293b;
+        border-color: rgba(255, 255, 255, 0.15);
+        color: #e2e8f0;
+    }
+
+    .dark .pagination-btn--active {
+        background-color: #2563eb;
+        border-color: #2563eb;
+        color: white;
     }
 
     /* ─── Page shell ────────────────────────────────────────────────────────── */

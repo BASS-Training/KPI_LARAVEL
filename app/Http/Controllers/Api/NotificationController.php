@@ -11,8 +11,8 @@ class NotificationController extends ApiController
 {
     public function index(Request $request): JsonResponse
     {
-        $notifications = KpiNotification::query()
-            ->where('user_id', $request->user()->id)
+        $notifications = $request->user()
+            ->kpiNotifications()
             ->orderByDesc('created_at')
             ->limit(50)
             ->get();

@@ -1,7 +1,5 @@
 <script setup>
 import { computed } from 'vue';
-import Card from '@/components/ui/Card.vue';
-import Badge from '@/components/ui/Badge.vue';
 import { cn } from '@/lib/utils';
 
 const props = defineProps({
@@ -11,43 +9,138 @@ const props = defineProps({
     icon: { type: Object, required: true },
     tone: { type: String, default: 'default' },
     chip: { type: String, default: '' },
+    // Optional: pass a numeric 0-100 to show a ring progress
+    progress: { type: Number, default: null },
 });
 
-const toneClasses = computed(() => ({
-    default: 'from-slate-50 via-white to-slate-100 text-slate-700 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 dark:text-slate-200',
-    success: 'from-emerald-50 via-white to-emerald-100 text-emerald-700 dark:from-emerald-950/60 dark:via-slate-950 dark:to-emerald-950/40 dark:text-emerald-300',
-    warning: 'from-amber-50 via-white to-amber-100 text-amber-700 dark:from-amber-950/60 dark:via-slate-950 dark:to-amber-950/40 dark:text-amber-300',
-    danger: 'from-rose-50 via-white to-rose-100 text-rose-700 dark:from-rose-950/60 dark:via-slate-950 dark:to-rose-950/40 dark:text-rose-300',
-    info: 'from-blue-50 via-white to-cyan-100 text-blue-700 dark:from-blue-950/60 dark:via-slate-950 dark:to-cyan-950/40 dark:text-blue-300',
-}[props.tone] ?? ''));
+const toneConfig = computed(() => ({
+    default: {
+        wrap: 'bg-white border-slate-200 dark:bg-slate-900 dark:border-slate-800',
+        iconWrap: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+        chip: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+        ring: 'stroke-slate-400',
+        bar: 'bg-slate-300',
+    },
+    success: {
+        wrap: 'bg-white border-emerald-100 dark:bg-slate-900 dark:border-emerald-900/40',
+        iconWrap: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400',
+        chip: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400',
+        ring: 'stroke-emerald-500',
+        bar: 'bg-emerald-500',
+    },
+    warning: {
+        wrap: 'bg-white border-amber-100 dark:bg-slate-900 dark:border-amber-900/40',
+        iconWrap: 'bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400',
+        chip: 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400',
+        ring: 'stroke-amber-500',
+        bar: 'bg-amber-500',
+    },
+    danger: {
+        wrap: 'bg-white border-rose-100 dark:bg-slate-900 dark:border-rose-900/40',
+        iconWrap: 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400',
+        chip: 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400',
+        ring: 'stroke-rose-500',
+        bar: 'bg-rose-500',
+    },
+    info: {
+        wrap: 'bg-white border-blue-100 dark:bg-slate-900 dark:border-blue-900/40',
+        iconWrap: 'bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400',
+        chip: 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400',
+        ring: 'stroke-blue-500',
+        bar: 'bg-blue-500',
+    },
+}[props.tone] ?? {}));
+
+// SVG ring values (r=18, circumference ≈ 113.1)
+const CIRC = 113.1;
+const ringOffset = computed(() => {
+    if (props.progress === null) return CIRC;
+    return CIRC - Math.max(0, Math.min(100, props.progress)) / 100 * CIRC;
+});
+
+const isNumericValue = computed(() => typeof props.value === 'number' || !Number.isNaN(Number(props.value)));
 </script>
 
 <template>
-    <Card class="rounded-[24px] border-slate-200/70 bg-white/90 p-0 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-lg dark:border-slate-800 dark:bg-slate-950/80">
-        <div class="relative overflow-hidden rounded-[24px]">
-            <div :class="cn('absolute inset-0 bg-gradient-to-br opacity-90', toneClasses)" />
-            <div class="relative flex items-start justify-between gap-4 p-5">
-                <div class="space-y-3">
-                    <div class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
-                        {{ title }}
-                    </div>
-                    <div class="text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">
-                        {{ value }}
-                    </div>
-                    <p class="max-w-[20rem] text-sm leading-6 text-slate-600 dark:text-slate-300">
-                        {{ description }}
-                    </p>
-                </div>
+    <div
+        :class="cn(
+            'group relative overflow-hidden rounded-2xl border p-5 shadow-sm transition-all duration-200',
+            'hover:-translate-y-0.5 hover:shadow-md',
+            toneConfig.wrap,
+        )"
+    >
+        <!-- Top row: title + icon ─────────────────────────────────────────── -->
+        <div class="flex items-start justify-between gap-3">
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+                {{ title }}
+            </p>
 
-                <div class="flex flex-col items-end gap-3">
-                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/80 shadow-sm ring-1 ring-white/70 dark:bg-slate-900/70 dark:ring-slate-800">
-                        <component :is="icon" class="h-5 w-5" />
+            <!-- Icon or ring -->
+            <div class="relative shrink-0">
+                <!-- Radial ring when progress is provided -->
+                <template v-if="progress !== null">
+                    <svg class="h-12 w-12 -rotate-90" viewBox="0 0 44 44" fill="none">
+                        <circle cx="22" cy="22" r="18" stroke-width="3.5" class="stroke-slate-100 dark:stroke-slate-800" />
+                        <circle
+                            cx="22" cy="22" r="18" stroke-width="3.5"
+                            stroke-linecap="round"
+                            :class="toneConfig.ring"
+                            :stroke-dasharray="CIRC"
+                            :stroke-dashoffset="ringOffset"
+                            style="transition: stroke-dashoffset 0.7s ease"
+                        />
+                    </svg>
+                    <div
+                        :class="cn(
+                            'absolute inset-0 flex items-center justify-center',
+                            toneConfig.iconWrap.replace('bg-', 'text-').replace(' text-', ' text-'),
+                        )"
+                    >
+                        <component :is="icon" class="h-4 w-4" />
                     </div>
-                    <Badge v-if="chip" variant="outline" class="border-white/70 bg-white/60 text-[11px] dark:border-slate-700 dark:bg-slate-900/70">
-                        {{ chip }}
-                    </Badge>
+                </template>
+
+                <!-- Plain icon box when no ring -->
+                <div
+                    v-else
+                    :class="cn('flex h-10 w-10 items-center justify-center rounded-xl', toneConfig.iconWrap)"
+                >
+                    <component :is="icon" class="h-4 w-4" />
                 </div>
             </div>
         </div>
-    </Card>
+
+        <!-- Value ─────────────────────────────────────────────────────────── -->
+        <div class="mt-3">
+            <div
+                :class="[
+                    'font-bold tracking-tight text-slate-900 dark:text-white',
+                    isNumericValue ? 'text-3xl' : 'truncate text-xl',
+                ]"
+            >
+                {{ value ?? '—' }}
+            </div>
+        </div>
+
+        <!-- Progress bar ─────────────────────────────────────────────────── -->
+        <div v-if="progress !== null" class="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+            <div
+                :class="cn('h-full rounded-full transition-all duration-700', toneConfig.bar)"
+                :style="{ width: `${Math.max(0, Math.min(100, progress))}%` }"
+            />
+        </div>
+
+        <!-- Description ─────────────────────────────────────────────────── -->
+        <p class="mt-3 text-sm leading-5 text-slate-500 dark:text-slate-400 line-clamp-2">
+            {{ description }}
+        </p>
+
+        <!-- Chip ─────────────────────────────────────────────────────────── -->
+        <div v-if="chip" class="mt-3">
+            <span :class="cn('inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold', toneConfig.chip)">
+                <span :class="cn('h-1.5 w-1.5 rounded-full', toneConfig.bar)" />
+                {{ chip }}
+            </span>
+        </div>
+    </div>
 </template>

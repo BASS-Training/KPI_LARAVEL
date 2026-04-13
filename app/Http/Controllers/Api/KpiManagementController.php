@@ -26,9 +26,20 @@ class KpiManagementController extends ApiController
 
     public function showUser(int $id, KpiDashboardRequest $request): JsonResponse
     {
-        $score = $this->kpiService->getUserScore($id, $request->filters());
+        try {
+            $score = $this->kpiService->getUserScore($id, $request->filters(), $request->user());
+        } catch (InvalidArgumentException $exception) {
+            return $this->error($exception->getMessage(), status: Response::HTTP_FORBIDDEN);
+        }
 
         return $this->resource(new KpiScoreDetailResource($score));
+    }
+
+    public function ranking(KpiDashboardRequest $request): JsonResponse
+    {
+        $ranking = $this->kpiService->getRanking($request->filters());
+
+        return $this->success(KpiScoreDetailResource::collection($ranking)->resolve(), 'Berhasil');
     }
 
     public function input(StoreKpiInputRequest $request): JsonResponse

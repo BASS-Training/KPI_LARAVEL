@@ -2,16 +2,22 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Requests\KpiDashboardRequest;
 use App\Models\KpiReport;
 use App\Models\User;
 use App\Services\KpiCalculatorService;
+use App\Services\KpiService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class ExportController extends ApiController
 {
-    public function __construct(private KpiCalculatorService $kpiCalculator) {}
+    public function __construct(
+        private KpiCalculatorService $kpiCalculator,
+        private KpiService $kpiService,
+    ) {}
 
     /**
      * Export individual KPI report to PDF.
@@ -44,6 +50,37 @@ class ExportController extends ApiController
         $filename = "KPI_{$user->nip}_{$bulan}_{$tahun}.pdf";
 
         return $pdf->download($filename);
+    }
+
+    public function export(KpiDashboardRequest $request): Response|JsonResponse
+    {
+        $filters = $request->filters();
+        $employeeId = $filters['employee_id'];
+
+        if ($employeeId) {
+            try {
+                $score = $this->kpiService->getUserScore($employeeId, $filters, $request->user());
+            } catch (\InvalidArgumentException $exception) {
+                return $this->error($exception->getMessage(), status: 403);
+            }
+
+            $pdf = Pdf::loadView('exports.kpi_advanced_user_report', [
+                'company' => config('kpi.company_name'),
+                'generatedAt' => now(),
+                'score' => $score,
+            ]);
+
+            return $pdf->download(sprintf(
+                'KPI_User_%s_%s.pdf',
+                $score->user?->nip ?? $score->user_id,
+                optional($score->period_start)->format('Y_m')
+            ));
+        }
+
+        $payload = $this->kpiService->buildTeamPdfData($filters);
+        $pdf = Pdf::loadView('exports.kpi_advanced_team_report', $payload);
+
+        return $pdf->download('KPI_Team_' . now()->format('Y_m_d_His') . '.pdf');
     }
 
     /**
@@ -100,7 +137,7 @@ class ExportController extends ApiController
         $tahun = (int) $request->input('tahun', now()->year);
         $divisionId = $request->input('division_id');
 
-        $reports = KpiReport::query()
+        $reports = \App\Models\KpiReport::query()
             ->whereMonth('tanggal', $bulan)
             ->whereYear('tanggal', $tahun)
             ->when($divisionId, fn ($q) => $q->whereHas('user', fn ($uq) => $uq->where('division_id', $divisionId)))
