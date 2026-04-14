@@ -50,6 +50,7 @@ $DEPLOY_PATH/shared/.env
 ### Catatan Deploy
 
 - server target diasumsikan Linux dan sudah terpasang `php`, `composer`, dan service web yang dibutuhkan
+- workflow GitHub Actions memakai PHP `8.4` karena `composer.lock` saat ini mengunci paket Symfony yang membutuhkan PHP `>=8.4`
 - workflow deploy akan menjalankan `composer install --no-dev`, `php artisan migrate --force`, dan cache ulang konfigurasi Laravel
 - workflow menyimpan 5 release terakhir agar rollback/manual switch tetap mudah
 
