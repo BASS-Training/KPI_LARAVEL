@@ -88,11 +88,11 @@ defineEmits(['edit', 'delete', 'detail', 'evidence', 'approve', 'reject', 'submi
                     </div>
                 </div>
 
-                <div class="xl:w-[248px] xl:flex-shrink-0">
-                    <div class="flex h-full flex-col gap-3 rounded-3xl border border-slate-200 bg-slate-50/70 p-4">
-                        <div>
+                <div class="xl:w-[240px] xl:flex-shrink-0">
+                    <div class="flex h-full flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-700 dark:bg-slate-800/40">
+                        <div class="border-b border-slate-100 pb-3 dark:border-slate-700">
                             <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Aksi Cepat</p>
-                            <p class="mt-1 text-sm leading-5 text-slate-500">Buka detail, cek evidence, lalu ambil keputusan review.</p>
+                            <p class="mt-0.5 text-xs leading-5 text-slate-400">Detail, evidence, dan keputusan review.</p>
                         </div>
                         <div class="flex flex-wrap gap-2 xl:flex-col">
                             <Button variant="outline" size="sm" class="xl:w-full xl:justify-center" @click="$emit('detail', report)">

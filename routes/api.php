@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\PositionController;
 use App\Http\Controllers\Api\ExportController;
 use App\Http\Controllers\Api\KpiComponentController;
 use App\Http\Controllers\Api\KpiController;
+use App\Http\Controllers\Api\KpiIndicatorController;
 use App\Http\Controllers\Api\KpiManagementController;
 use App\Http\Controllers\Api\KpiReportController;
 use App\Http\Controllers\Api\LogController;
@@ -38,6 +39,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/tasks', [TaskController::class, 'store']);
     Route::put('/tasks/{task}', [TaskController::class, 'update']);
     Route::delete('/tasks/{task}', [TaskController::class, 'destroy']);
+    Route::get('/my-tasks', [TaskController::class, 'myTasks']);
+    Route::put('/tasks/{task}/update-status', [TaskController::class, 'updateStatus']);
     Route::put('/tasks/{task}/mapping', [TaskController::class, 'mapping'])->middleware('role:hr_manager,direktur');
 
     Route::get('/kpi/me', [KpiController::class, 'me']);
@@ -79,6 +82,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/divisions', [DivisionController::class, 'store'])->middleware('role:hr_manager,direktur');
     Route::put('/divisions/{division}', [DivisionController::class, 'update'])->middleware('role:hr_manager,direktur');
     Route::delete('/divisions/{division}', [DivisionController::class, 'destroy'])->middleware('role:hr_manager,direktur');
+
+    // KPI Indicators
+    Route::get('/kpi-indicators/meta', [KpiIndicatorController::class, 'meta'])->middleware('role:hr_manager,direktur');
+    Route::get('/kpi-indicators', [KpiIndicatorController::class, 'index']);
+    Route::post('/kpi-indicators', [KpiIndicatorController::class, 'store'])->middleware('role:hr_manager,direktur');
+    Route::get('/kpi-indicators/{kpiIndicator}', [KpiIndicatorController::class, 'show']);
+    Route::put('/kpi-indicators/{kpiIndicator}', [KpiIndicatorController::class, 'update'])->middleware('role:hr_manager,direktur');
+    Route::delete('/kpi-indicators/{kpiIndicator}', [KpiIndicatorController::class, 'destroy'])->middleware('role:hr_manager,direktur');
 
     // KPI Reports
     Route::get('/kpi-reports', [KpiReportController::class, 'index']);

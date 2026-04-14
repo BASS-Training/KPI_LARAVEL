@@ -16,10 +16,44 @@ class EloquentKpiIndicatorRepository implements KpiIndicatorRepositoryInterface
             ->get();
     }
 
+    public function getByDepartment(int $departmentId): Collection
+    {
+        return KpiIndicator::query()
+            ->where('department_id', $departmentId)
+            ->orderBy('id')
+            ->get();
+    }
+
+    /**
+     * Return department-scoped indicators first; fall back to role-based if none found.
+     */
+    public function getForUser(int $roleId, ?int $departmentId): Collection
+    {
+        if ($departmentId) {
+            $dept = $this->getByDepartment($departmentId);
+
+            if ($dept->isNotEmpty()) {
+                return $dept;
+            }
+        }
+
+        return $this->getByRole($roleId);
+    }
+
     public function findById(int $id): ?KpiIndicator
     {
         return KpiIndicator::query()
-            ->with('role')
+            ->with(['role', 'department'])
             ->find($id);
+    }
+
+    public function all(): Collection
+    {
+        return KpiIndicator::query()
+            ->with(['role', 'department'])
+            ->orderBy('department_id')
+            ->orderBy('role_id')
+            ->orderBy('id')
+            ->get();
     }
 }

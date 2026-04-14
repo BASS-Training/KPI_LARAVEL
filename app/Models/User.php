@@ -71,9 +71,24 @@ class User extends Authenticatable
         return $this->hasMany(Task::class);
     }
 
+    public function assignedTasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'assigned_to');
+    }
+
+    public function createdTasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'assigned_by');
+    }
+
     public function mappedTasks(): HasMany
     {
         return $this->hasMany(Task::class, 'mapped_by');
+    }
+
+    public function taskScores(): HasMany
+    {
+        return $this->hasMany(TaskScore::class);
     }
 
     public function kpiReports(): HasMany

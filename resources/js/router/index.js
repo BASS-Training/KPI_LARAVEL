@@ -37,6 +37,11 @@ const DirekturRankingPage = () => import('@/pages/direktur/RankingPage.vue');
 // Pegawai progress
 const KpiProgressPage = () => import('@/pages/pegawai/KpiProgressPage.vue');
 
+// Enterprise KPI pages
+const MyTasksPage           = () => import('@/pages/pegawai/MyTasksPage.vue');
+const TaskAssignmentPage    = () => import('@/pages/hr/TaskAssignmentPage.vue');
+const KpiIndicatorPage      = () => import('@/pages/hr/KpiIndicatorPage.vue');
+
 // Shared
 const NotificationsPage = () => import('@/pages/NotificationsPage.vue');
 
@@ -67,6 +72,11 @@ const routes = [
     {
         path: '/progress-kpi',
         component: KpiProgressPage,
+        meta: { requiresAuth: true, roles: ['pegawai'] },
+    },
+    {
+        path: '/my-tasks',
+        component: MyTasksPage,
         meta: { requiresAuth: true, roles: ['pegawai'] },
     },
 
@@ -134,6 +144,16 @@ const routes = [
     {
         path: '/hr/jabatan',
         component: PositionPage,
+        meta: { requiresAuth: true, roles: ['hr_manager', 'direktur'] },
+    },
+    {
+        path: '/hr/penugasan',
+        component: TaskAssignmentPage,
+        meta: { requiresAuth: true, roles: ['hr_manager', 'direktur'] },
+    },
+    {
+        path: '/hr/kpi-indicators',
+        component: KpiIndicatorPage,
         meta: { requiresAuth: true, roles: ['hr_manager', 'direktur'] },
     },
 

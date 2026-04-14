@@ -25,6 +25,7 @@ const navMap = {
                 { label: 'Input Pekerjaan', to: '/pekerjaan', icon: `<path d="M7 3h10v18H7z"/><path d="M10 8h4M10 12h4M10 16h4"/>` },
                 { label: 'Laporan KPI', to: '/laporan-kpi', icon: `<path d="M4 19V5m0 14h16M8 15l3-3 3 2 4-6"/>` },
                 { label: 'Progress KPI', to: '/progress-kpi', icon: `<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>` },
+                { label: 'Tugas Saya', to: '/my-tasks', icon: `<path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 9 2 2 4-4"/>` },
             ],
         },
         {
@@ -40,6 +41,7 @@ const navMap = {
             items: [
                 { label: 'Beranda HR', to: '/hr/dashboard', icon: `<path d="M4 19V5m0 14h16M8 15l3-3 3 2 4-6"/>` },
                 { label: 'Mapping KPI', to: '/hr/mapping', icon: `<path d="M7 3h10v18H7z"/><path d="M10 8h4M10 12h4M10 16h4"/>` },
+                { label: 'Penugasan Tugas', to: '/hr/penugasan', icon: `<path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 9 2 2 4-4"/>` },
                 { label: 'Tinjau Laporan KPI', to: '/hr/laporan-review', icon: `<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>` },
                 { label: 'Detail KPI Pegawai', to: '/hr/kpi-pegawai', icon: `<path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M20 8v6m3-3h-6"/>` },
                 { label: 'Analytics', to: '/hr/analytics', icon: `<path d="M4 19V5m0 14h16"/><path d="M7 15V9m5 6V5m5 10v-3"/>` },
@@ -53,6 +55,7 @@ const navMap = {
                 { label: 'Manajemen Divisi', to: '/hr/divisi', icon: `<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>` },
                 { label: 'Manajemen Departemen', to: '/hr/departemen', icon: `<path d="M3 9h18M9 21V9m6 12V9M3 3h18v18H3z"/>` },
                 { label: 'Manajemen Jabatan', to: '/hr/jabatan', icon: `<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>` },
+                { label: 'Indikator KPI', to: '/hr/kpi-indicators', icon: `<path d="M4 19V5m0 14h16"/><path d="M7 15V9m5 6V5m5 10v-3"/>` },
                 { label: 'Komponen KPI', to: '/hr/kpi-components', icon: `<circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48 2.83-2.83"/>` },
                 { label: 'SLA Pekerjaan', to: '/hr/sla', icon: `<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>` },
                 { label: 'Pengaturan', to: '/hr/settings', icon: `<path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/><path d="M3 12h2m14 0h2M12 3v2m0 14v2M5.64 5.64l1.41 1.41m9.9 9.9 1.41 1.41m0-12.72-1.41 1.41m-9.9 9.9-1.41 1.41"/>` },

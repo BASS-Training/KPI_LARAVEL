@@ -7,6 +7,8 @@ use App\Models\KpiIndicator;
 use App\Models\KpiScore;
 use App\Models\KpiTarget;
 use App\Models\Role;
+use App\Models\Task;
+use App\Models\TaskScore;
 use App\Models\User;
 use App\Notifications\KpiLowNotification;
 use App\Repositories\Contracts\KpiIndicatorRepositoryInterface;
@@ -27,6 +29,7 @@ class KpiService
         private readonly KpiTargetRepositoryInterface $targetRepository,
         private readonly KpiRecordRepositoryInterface $recordRepository,
         private readonly KpiScoreRepositoryInterface $scoreRepository,
+        private readonly KpiFormulaEngine $formulaEngine = new KpiFormulaEngine(),
     ) {
     }
 
@@ -102,7 +105,10 @@ class KpiService
             ->get();
 
         foreach ($users as $user) {
-            $indicators = $this->indicatorRepository->getByRole((int) $user->role_id);
+            $indicators = $this->indicatorRepository->getForUser(
+                (int) $user->role_id,
+                $user->department_id ? (int) $user->department_id : null
+            );
 
             foreach ($indicators as $indicator) {
                 $targetValue = (float) ($indicator->default_target_value ?: config('kpi.default_target_value'));
@@ -150,28 +156,30 @@ class KpiService
         string $periodStart,
         ?KpiIndicator $changedIndicator = null,
     ): KpiScore {
-        if (!$user->role_id) {
-            throw new InvalidArgumentException('User belum memiliki role KPI.');
-        }
-
-        $indicators = $this->indicatorRepository->getByRole((int) $user->role_id);
+        $indicators = $user->role_id
+            ? $this->indicatorRepository->getForUser((int) $user->role_id, $user->department_id ? (int) $user->department_id : null)
+            : collect();
         $records = $this->recordRepository->getUserRecordsForPeriod($user->id, $periodType, $periodStart);
-        $targets = $this->targetRepository->getByIndicatorsAndPeriod(
-            $indicators->pluck('id')->all(),
-            $periodType,
-            $periodStart
-        );
+        $targets = $indicators->isNotEmpty()
+            ? $this->targetRepository->getByIndicatorsAndPeriod(
+                $indicators->pluck('id')->all(),
+                $periodType,
+                $periodStart
+            )
+            : collect();
         $period = $this->resolvePeriod($periodType, $periodStart);
+        $taskScores = $this->resolveTaskScores($user, $periodType, $period);
 
-        $breakdown = $indicators->map(function (KpiIndicator $indicator) use ($records, $targets) {
+        $indicatorBreakdown = $indicators->map(function (KpiIndicator $indicator) use ($records, $targets) {
             $record = $records->get($indicator->id);
             $target = $targets->get($indicator->id);
-            $targetValue = (float) ($record?->target_value ?? $target?->target_value ?? $indicator->default_target_value ?? 0);
-            $actualValue = (float) ($record?->actual_value ?? 0);
-            $achievementRatio = $this->calculateAchievementRatio($actualValue, $targetValue);
-            $indicatorScore = round($achievementRatio * (float) $indicator->weight, 2);
+            $targetValue      = (float) ($record?->target_value ?? $target?->target_value ?? $indicator->default_target_value ?? 0);
+            $actualValue      = (float) ($record?->actual_value ?? 0);
+            $indicatorScore   = $this->formulaEngine->evaluate($indicator, $actualValue, $targetValue);
+            $achievementRatio = $this->formulaEngine->achievementRatio($indicator, $actualValue, $targetValue);
 
             return [
+                'type' => 'indicator',
                 'indicator_id' => $indicator->id,
                 'name' => $indicator->name,
                 'description' => $indicator->description,
@@ -183,7 +191,10 @@ class KpiService
             ];
         })->values()->all();
 
-        $rawScore = round(collect($breakdown)->sum('score'), 2);
+        $taskBreakdown = $this->mergeTaskWithKPI($taskScores);
+        $breakdown = array_values(array_merge($indicatorBreakdown, $taskBreakdown));
+
+        $rawScore = round(collect($indicatorBreakdown)->sum('score') + collect($taskBreakdown)->sum('score'), 2);
         $normalizedScore = round(min($rawScore, 100), 2);
         $status = $this->resolveStatus($normalizedScore);
 
@@ -272,6 +283,62 @@ class KpiService
         return collect($this->getDashboard($filters)['ranking']);
     }
 
+    public function calculateTaskScore(Task $task): float
+    {
+        $weight = max(0, (float) $task->weight);
+
+        if ($weight <= 0) {
+            return 0;
+        }
+
+        if ($task->target_value !== null && (float) $task->target_value > 0) {
+            $ratio = $this->calculateAchievementRatio((float) ($task->actual_value ?? 0), (float) $task->target_value);
+
+            return round(min($ratio * $weight, $weight), 2);
+        }
+
+        return round(match ($task->status_code) {
+            Task::STATUS_DONE => $weight,
+            Task::STATUS_ON_PROGRESS => $weight * 0.5,
+            default => 0,
+        }, 2);
+    }
+
+    public function mergeTaskWithKPI(Collection $taskScores): array
+    {
+        return $taskScores
+            ->filter(fn (TaskScore $taskScore) => $taskScore->task)
+            ->map(function (TaskScore $taskScore) {
+                $task = $taskScore->task;
+
+                return [
+                    'type' => 'task',
+                    'indicator_id' => null,
+                    'task_id' => $task->id,
+                    'name' => $task->judul,
+                    'description' => $task->deskripsi,
+                    'weight' => $task->weight !== null ? (float) $task->weight : null,
+                    'target_value' => $task->target_value !== null ? (float) $task->target_value : null,
+                    'actual_value' => $task->actual_value !== null ? (float) $task->actual_value : null,
+                    'achievement_ratio' => $task->target_value
+                        ? round($this->calculateAchievementRatio((float) ($task->actual_value ?? 0), (float) $task->target_value) * 100, 2)
+                        : match ($task->status_code) {
+                            Task::STATUS_DONE => 100,
+                            Task::STATUS_ON_PROGRESS => 50,
+                            default => 0,
+                        },
+                    'score' => (float) $taskScore->score,
+                    'status' => $task->status_code,
+                    'status_label' => $task->status_label,
+                    'period' => $taskScore->period,
+                    'start_date' => optional($task->start_date)->toDateString(),
+                    'end_date' => optional($task->end_date)->toDateString(),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
     public function canAccessUserKpi(User $actor, int $targetUserId): bool
     {
         if ($actor->id === $targetUserId) {
@@ -341,6 +408,26 @@ class KpiService
 
         $recommendation = 'Tinjau indikator dengan pencapaian terendah dan susun rencana perbaikan bersama atasan.';
         $user->notify(new KpiLowNotification($score, $recommendation));
+    }
+
+    private function resolveTaskScores(User $user, string $periodType, array $period): Collection
+    {
+        $query = TaskScore::query()
+            ->with('task')
+            ->where('user_id', $user->id);
+
+        if ($periodType === 'monthly') {
+            $query->where('period', $period['start']->format('Y-m'));
+        } else {
+            $taskIds = Task::query()
+                ->where('assigned_to', $user->id)
+                ->whereBetween('end_date', [$period['start']->toDateString(), $period['end']->toDateString()])
+                ->pluck('id');
+
+            $query->whereIn('task_id', $taskIds);
+        }
+
+        return $query->get();
     }
 
     private function calculateAchievementRatio(float $actualValue, float $targetValue): float

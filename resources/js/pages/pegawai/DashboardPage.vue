@@ -161,7 +161,7 @@ function scoreBarColor(score) {
         </section>
 
         <!-- Analytics-style metric cards (big bold numbers) -->
-        <div class="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div class="grid grid-cols-2 gap-6 lg:grid-cols-4">
             <template v-if="kpiStore.isLoading">
                 <Skeleton v-for="i in 4" :key="i" class="h-24 rounded-2xl" />
             </template>
@@ -211,7 +211,7 @@ function scoreBarColor(score) {
         </div>
 
         <!-- Main content grid -->
-        <div class="mt-5 grid gap-5 xl:grid-cols-[1.4fr_0.95fr]">
+        <div class="grid gap-6 xl:grid-cols-[1.4fr_0.95fr]">
 
             <!-- KPI Components -->
             <div class="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -267,7 +267,7 @@ function scoreBarColor(score) {
             </div>
 
             <!-- Right column -->
-            <div class="space-y-5">
+            <div class="space-y-6">
 
                 <!-- Quick actions -->
                 <div class="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -335,7 +335,7 @@ function scoreBarColor(score) {
         </div>
 
         <!-- Bottom row: recent tasks + ranking -->
-        <div class="mt-5 grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+        <div class="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
 
             <!-- Recent tasks -->
             <div class="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">

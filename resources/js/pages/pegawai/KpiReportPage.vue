@@ -205,28 +205,48 @@ function handlePageChange(page) {
 
         <KpiReportSummaryCards :items="summaryCards" />
 
-        <section class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div class="grid gap-4 lg:grid-cols-[1.4fr_repeat(3,minmax(0,1fr))]">
+        <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4 dark:border-slate-800">
                 <div>
-                    <label class="form-label">Cari laporan</label>
-                    <Input v-model="ui.search" placeholder="Cari komponen KPI atau catatan..." />
+                    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Filter & Pencarian</p>
+                    <h2 class="mt-0.5 text-sm font-semibold text-slate-900 dark:text-slate-100">Saring laporan berdasarkan kriteria</h2>
                 </div>
-                <div>
-                    <label class="form-label">Status</label>
-                    <Select v-model="ui.status" :options="reportStatusOptions" />
-                </div>
-                <div>
-                    <label class="form-label">Bulan</label>
-                    <Select v-model="ui.bulan" :options="monthOptions" />
-                </div>
-                <div>
-                    <label class="form-label">Tahun</label>
-                    <Select v-model="ui.tahun" :options="yearOptions" />
+            </div>
+            <div class="p-6">
+                <div class="grid gap-4 lg:grid-cols-[1.4fr_repeat(3,minmax(0,1fr))]">
+                    <div>
+                        <label class="form-label">Cari laporan</label>
+                        <Input v-model="ui.search" placeholder="Cari komponen KPI atau catatan..." />
+                    </div>
+                    <div>
+                        <label class="form-label">Status</label>
+                        <Select v-model="ui.status" :options="reportStatusOptions" />
+                    </div>
+                    <div>
+                        <label class="form-label">Bulan</label>
+                        <Select v-model="ui.bulan" :options="monthOptions" />
+                    </div>
+                    <div>
+                        <label class="form-label">Tahun</label>
+                        <Select v-model="ui.tahun" :options="yearOptions" />
+                    </div>
                 </div>
             </div>
         </section>
 
         <section class="space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Daftar Laporan KPI</h2>
+                    <p class="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+                        <template v-if="store.pagination.total">
+                            {{ pageRange.from }}–{{ pageRange.to }} dari {{ store.pagination.total }} laporan
+                        </template>
+                        <template v-else>Tidak ada laporan pada filter ini</template>
+                    </p>
+                </div>
+            </div>
+
             <KpiReportSkeletonList v-if="store.isLoading" />
             <KpiReportEmptyState
                 v-else-if="!store.reports.length"

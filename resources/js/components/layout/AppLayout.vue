@@ -15,7 +15,7 @@ function toggleSidebar() {
 </script>
 
 <template>
-    <div class="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#0a0f1e]">
+    <div class="flex min-h-screen overflow-hidden bg-muted/40 dark:bg-[#0a0f1e]">
 
         <!-- ── Desktop sidebar ──────────────────────────────────────────── -->
         <aside
@@ -57,8 +57,10 @@ function toggleSidebar() {
                 </template>
             </AppTopbar>
 
-            <main class="flex-1 overflow-y-auto page-shell">
-                <slot />
+            <main class="flex-1 overflow-y-auto">
+                <div class="page-shell">
+                    <slot />
+                </div>
             </main>
         </div>
     </div>
