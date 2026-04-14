@@ -157,25 +157,38 @@ function handlePageChange(page) {
 
         <KpiReportSummaryCards :items="summaryCards" />
 
-        <section class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div class="grid gap-4 lg:grid-cols-[1.5fr_repeat(4,minmax(0,1fr))]">
+        <section class="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div class="flex flex-col gap-5 border-b border-slate-100 pb-5 sm:flex-row sm:items-end sm:justify-between">
                 <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Filter Review</p>
+                    <h2 class="mt-2 text-lg font-semibold text-slate-950">Persempit antrian tanpa kehilangan konteks</h2>
+                    <p class="mt-1 text-sm leading-6 text-slate-500">
+                        Cari laporan berdasarkan pegawai, status, dan periode untuk mempercepat keputusan review.
+                    </p>
+                </div>
+                <div class="rounded-2xl border border-emerald-100 bg-emerald-50/80 px-4 py-3 text-sm text-emerald-700">
+                    {{ store.pagination.total }} laporan ditemukan pada filter aktif
+                </div>
+            </div>
+
+            <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-[1.6fr_repeat(4,minmax(0,1fr))]">
+                <div class="space-y-2">
                     <label class="form-label">Cari laporan</label>
                     <Input v-model="ui.search" placeholder="Cari nama pegawai, komponen KPI, atau catatan..." />
                 </div>
-                <div>
+                <div class="space-y-2">
                     <label class="form-label">Pegawai</label>
                     <Select v-model="ui.user_id" :options="employeeOptions" />
                 </div>
-                <div>
+                <div class="space-y-2">
                     <label class="form-label">Status</label>
                     <Select v-model="ui.status" :options="reportStatusOptions" />
                 </div>
-                <div>
+                <div class="space-y-2">
                     <label class="form-label">Bulan</label>
                     <Select v-model="ui.bulan" :options="monthFilterOptions" />
                 </div>
-                <div>
+                <div class="space-y-2">
                     <label class="form-label">Tahun</label>
                     <Select v-model="ui.tahun" :options="yearOptions" />
                 </div>
