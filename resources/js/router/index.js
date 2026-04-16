@@ -98,7 +98,7 @@ const routes = [
     {
         path: '/hr/kpi-components',
         component: KpiComponentPage,
-        meta: { requiresAuth: true, roles: ['hr_manager'] },
+        meta: { requiresAuth: true, roles: ['hr_manager', 'direktur'] },
     },
     {
         path: '/hr/sla',

@@ -11,8 +11,16 @@ class KpiCalculatorService
     public function calculateForUser(User $user, ?int $month = null, ?int $year = null): array
     {
         $components = KpiComponent::query()
-            ->where('jabatan', $user->jabatan)
             ->where('is_active', true)
+            ->where(fn ($query) => $query
+                ->whereNull('department_id')
+                ->orWhere('department_id', $user->department_id))
+            ->where(fn ($query) => $query
+                ->whereNull('position_id')
+                ->orWhere('position_id', $user->position_id))
+            ->where(fn ($query) => $query
+                ->where('jabatan', $user->jabatan)
+                ->orWhere('jabatan', 'Semua Jabatan'))
             ->get();
 
         $tasks = $user->tasks()
@@ -37,7 +45,7 @@ class KpiCalculatorService
                 'tipe' => $component->tipe,
                 'bobot' => (float) $component->bobot,
                 'target' => $component->target !== null ? (float) $component->target : null,
-                'manual_score_total' => round((float) $componentTasks->sum('manual_score'), 2),
+                'manual_score_total' => round($this->sumTaskActuals($componentTasks), 2),
                 'jumlah_task' => $componentTasks->count(),
                 'skor' => $score,
                 'nilai_bobot' => $weighted,
@@ -67,9 +75,14 @@ class KpiCalculatorService
             'zero_delay' => $tasks->contains('ada_delay', true) ? 0 : 5,
             'zero_error' => $tasks->contains('ada_error', true) ? 0 : 5,
             'zero_complaint' => $tasks->contains('ada_komplain', true) ? 0 : 5,
-            'achievement', 'csi' => $this->resolveAchievementScore((float) $tasks->sum('manual_score'), $target),
+            'achievement', 'csi' => $this->resolveAchievementScore($this->sumTaskActuals($tasks), $target),
             default => 0,
         };
+    }
+
+    private function sumTaskActuals(Collection $tasks): float
+    {
+        return (float) $tasks->sum(fn ($task) => $task->manual_score ?? $task->actual_value ?? 0);
     }
 
     private function resolveAchievementScore(float $manualScoreTotal, float $target): int

@@ -30,7 +30,9 @@ class TaskController extends ApiController
                 ->orWhere('assigned_to', $user->id)))
             ->when($request->filled('user_id') && !$user->isPegawai(), fn ($query) => $query->where('user_id', $request->integer('user_id')))
             ->when($request->filled('assigned_to') && !$user->isPegawai(), fn ($query) => $query->where('assigned_to', $request->integer('assigned_to')))
-            ->when($request->filled('task_type'), fn ($query) => $query->where('task_type', $request->string('task_type')))
+            ->when($request->filled('task_type') || $request->filled('type'), function ($query) use ($request) {
+                $query->where('task_type', (string) ($request->input('task_type') ?? $request->input('type')));
+            })
             ->when($request->filled('bulan'), fn ($query) => $query->whereMonth(DB::raw('COALESCE(end_date, tanggal)'), $request->integer('bulan')))
             ->when($request->filled('tahun'), fn ($query) => $query->whereYear(DB::raw('COALESCE(end_date, tanggal)'), $request->integer('tahun')))
             ->when($request->filled('status'), fn ($query) => $query->where('status', Task::statusForStorage((string) $request->input('status'))))
@@ -213,7 +215,7 @@ class TaskController extends ApiController
     public function myTasks(Request $request)
     {
         $tasks = Task::query()
-            ->with(['assignee', 'assigner', 'taskScores'])
+            ->with(['assignee', 'assigner', 'kpiComponent', 'taskScores'])
             ->where('task_type', Task::TYPE_MANUAL_ASSIGNMENT)
             ->where('assigned_to', $request->user()->id)
             ->latest('end_date')

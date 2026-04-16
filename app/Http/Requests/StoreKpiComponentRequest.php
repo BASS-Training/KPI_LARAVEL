@@ -6,6 +6,13 @@ use Illuminate\Validation\Rule;
 
 class StoreKpiComponentRequest extends SanitizedFormRequest
 {
+    public function prepareForValidation(): void
+    {
+        if (!$this->filled('jabatan')) {
+            $this->merge(['jabatan' => 'Semua Jabatan']);
+        }
+    }
+
     public function authorize(): bool
     {
         return true;

@@ -50,8 +50,8 @@ const summary = computed(() => dashboardStore.summary ?? {
 const roleOptions = computed(() => {
     const unique = new Map();
     employeeStore.employees.forEach((employee) => {
-        const key = employee.role_id ?? employee.role_ref?.id;
-        const label = employee.role_ref?.name ?? employee.role ?? employee.jabatan;
+        const key = employee.position_id;
+        const label = employee.jabatan;
         if (key && label && !unique.has(String(key))) {
             unique.set(String(key), { value: String(key), label });
         }
@@ -61,7 +61,7 @@ const roleOptions = computed(() => {
 
 const employeeOptions = computed(() => {
     const filtered = employeeStore.employees
-        .filter((e) => !localFilters.value.roleId || String(e.role_id) === String(localFilters.value.roleId))
+        .filter((e) => !localFilters.value.roleId || String(e.position_id) === String(localFilters.value.roleId))
         .map((e) => ({ value: String(e.id), label: e.nama }));
     return [{ value: '', label: 'Semua karyawan' }, ...filtered];
 });

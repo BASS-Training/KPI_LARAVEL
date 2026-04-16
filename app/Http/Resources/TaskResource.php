@@ -33,6 +33,7 @@ class TaskResource extends JsonResource
             'weight' => $this->weight !== null ? (float) $this->weight : null,
             'target_value' => $this->target_value !== null ? (float) $this->target_value : null,
             'actual_value' => $this->actual_value !== null ? (float) $this->actual_value : null,
+            'kpi_component_id' => $this->kpi_component_id,
             'manual_score' => $this->manual_score !== null ? (float) $this->manual_score : null,
             'mapped_at' => optional($this->mapped_at)->toISOString(),
             'user' => new UserResource($this->whenLoaded('user')),

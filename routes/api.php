@@ -51,9 +51,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/kpi/{user}', [KpiController::class, 'show'])->middleware('role:hr_manager,direktur');
 
     Route::get('/kpi-components', [KpiComponentController::class, 'index']);
-    Route::post('/kpi-components', [KpiComponentController::class, 'store'])->middleware('role:hr_manager');
-    Route::put('/kpi-components/{kpiComponent}', [KpiComponentController::class, 'update'])->middleware('role:hr_manager');
-    Route::delete('/kpi-components/{kpiComponent}', [KpiComponentController::class, 'destroy'])->middleware('role:hr_manager');
+    Route::post('/kpi-components', [KpiComponentController::class, 'store'])->middleware('role:hr_manager,direktur');
+    Route::put('/kpi-components/{kpiComponent}', [KpiComponentController::class, 'update'])->middleware('role:hr_manager,direktur');
+    Route::delete('/kpi-components/{kpiComponent}', [KpiComponentController::class, 'destroy'])->middleware('role:hr_manager,direktur');
 
     Route::get('/sla', [SlaController::class, 'index']);
     Route::post('/sla', [SlaController::class, 'store'])->middleware('role:hr_manager');

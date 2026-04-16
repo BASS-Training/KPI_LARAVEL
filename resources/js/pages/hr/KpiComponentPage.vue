@@ -120,11 +120,6 @@ function validate() {
     Object.assign(errors, { jabatan: '', objectives: '', strategy: '', bobot: '', tipe: '' });
     let valid = true;
 
-    if (!form.jabatan) {
-        errors.jabatan = 'Jabatan wajib diisi.';
-        valid = false;
-    }
-
     if (!form.objectives) {
         errors.objectives = 'Objective wajib diisi.';
         valid = false;
@@ -156,7 +151,7 @@ async function submit() {
 
     try {
         const payload = {
-            jabatan:       form.jabatan,
+            jabatan:       form.jabatan || 'Semua Jabatan',
             department_id: form.department_id,
             position_id:   form.position_id,
             objectives:    form.objectives,

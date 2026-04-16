@@ -49,6 +49,8 @@ class StoreTaskRequest extends SanitizedFormRequest
                 'weight' => ['required', 'numeric', 'min:0', 'max:100'],
                 'target_value' => ['nullable', 'numeric', 'min:0'],
                 'actual_value' => ['nullable', 'numeric', 'min:0'],
+                'kpi_component_id' => ['nullable', 'exists:kpi_components,id'],
+                'jenis_pekerjaan' => ['nullable', 'string', 'max:255'],
                 'status' => ['required', Rule::in(['pending', 'on_progress', 'done', 'Pending', 'Dalam Proses', 'Selesai'])],
             ];
         }

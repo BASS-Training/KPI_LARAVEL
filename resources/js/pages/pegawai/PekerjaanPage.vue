@@ -68,17 +68,17 @@ function validate() {
 
     let valid = true;
 
-    if (!form.judul.trim()) {
+    if (!isAssignedTaskEdit.value && !form.judul.trim()) {
         formErrors.judul = 'Judul wajib diisi.';
         valid = false;
     }
 
-    if (!form.tanggal) {
+    if (!isAssignedTaskEdit.value && !form.tanggal) {
         formErrors.tanggal = 'Tanggal wajib diisi.';
         valid = false;
     }
 
-    if (!form.jenis_pekerjaan) {
+    if (!isAssignedTaskEdit.value && !form.jenis_pekerjaan) {
         formErrors.jenis_pekerjaan = 'Jenis pekerjaan wajib dipilih.';
         valid = false;
     }
@@ -388,7 +388,14 @@ const statusBadgeMap = {
                                 <p class="text-sm font-medium text-slate-900">Aksi Cepat</p>
                                 <div class="grid grid-cols-2 gap-3">
                                     <button type="button" class="btn-secondary justify-center" @click="openEdit(task)">Edit</button>
-                                    <button type="button" class="btn-danger justify-center" @click="openDeleteDialog(task)">Hapus</button>
+                                    <button
+                                        v-if="task.task_type !== 'manual_assignment'"
+                                        type="button"
+                                        class="btn-danger justify-center"
+                                        @click="openDeleteDialog(task)"
+                                    >
+                                        Hapus
+                                    </button>
                                 </div>
                             </div>
                         </div>

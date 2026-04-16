@@ -14,7 +14,7 @@ export const useTaskAssignmentStore = defineStore('task-assignment', () => {
         status: '',
         bulan: new Date().getMonth() + 1,
         tahun: new Date().getFullYear(),
-        assignee_id: '',
+        assigned_to: '',
     });
 
     /** HR: fetch all manually assigned tasks */

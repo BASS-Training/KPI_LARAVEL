@@ -240,6 +240,7 @@ class KpiService
         )->loadMissing(['user']);
 
         $this->notifyLowPerformance($user, $score);
+        $this->flushDashboardCaches($periodType, $period['start']->toDateString());
         event(new KPIUpdated($score, $changedIndicator));
 
         return $score;
@@ -248,13 +249,25 @@ class KpiService
     public function getDashboard(array $filters): array
     {
         $period = $this->resolvePeriod($filters['period_type'], $filters['period']);
-        $cacheKey = $this->dashboardCacheKey($period['type'], $period['start']->toDateString(), null);
-
-        return Cache::remember($cacheKey, now()->addMinutes(config('kpi.cache_ttl')), function () use ($period, $filters) {
+        $roleId = $filters['role_id'] ?? null;
+        $employeeId = $filters['employee_id'] ?? null;
+        return (function () use ($period, $roleId, $employeeId) {
             $scores = $this->scoreRepository->getLeaderboard(
                 $period['type'],
                 $period['start']->toDateString()
             );
+
+            if ($roleId) {
+                $scores = $scores
+                    ->filter(fn (KpiScore $score) => (int) $score->user?->position_id === (int) $roleId)
+                    ->values();
+            }
+
+            if ($employeeId) {
+                $scores = $scores
+                    ->filter(fn (KpiScore $score) => (int) $score->user_id === (int) $employeeId)
+                    ->values();
+            }
 
             $average = round((float) $scores->avg('normalized_score'), 2);
             $topPerformer = $scores->first();
@@ -273,7 +286,7 @@ class KpiService
                 ],
                 'ranking' => $this->attachRank($scores),
             ];
-        });
+        })();
     }
 
     public function getUserScore(int $userId, array $filters, ?User $actor = null): KpiScore
@@ -282,7 +295,7 @@ class KpiService
 
         /** @var User $user */
         $user = User::query()
-            ->select(['id', 'nip', 'nama', 'jabatan', 'departemen', 'email', 'role', 'department_id'])
+            ->select(['id', 'nip', 'nama', 'jabatan', 'departemen', 'email', 'role', 'department_id', 'position_id'])
             ->findOrFail($userId);
 
         if ($actor && !$this->canAccessUserKpi($actor, $userId)) {
@@ -335,6 +348,12 @@ class KpiService
                     'type' => 'task',
                     'indicator_id' => null,
                     'task_id' => $task->id,
+                    'kpi_component_id' => $task->kpi_component_id,
+                    'kpi_component' => $task->kpiComponent ? [
+                        'id' => $task->kpiComponent->id,
+                        'objectives' => $task->kpiComponent->objectives,
+                        'tipe' => $task->kpiComponent->tipe,
+                    ] : null,
                     'name' => $task->judul,
                     'description' => $task->deskripsi,
                     'weight' => $task->weight !== null ? (float) $task->weight : null,
@@ -491,7 +510,7 @@ class KpiService
     private function resolveTaskScores(User $user, string $periodType, array $period): Collection
     {
         $query = TaskScore::query()
-            ->with('task')
+            ->with('task.kpiComponent')
             ->where('user_id', $user->id);
 
         if ($periodType === 'monthly') {
@@ -556,9 +575,20 @@ class KpiService
         };
     }
 
-    private function dashboardCacheKey(string $periodType, string $periodStart, ?int $roleId): string
+    private function dashboardCacheKey(
+        string $periodType,
+        string $periodStart,
+        ?int $roleId,
+        ?int $employeeId = null
+    ): string
     {
-        return sprintf('kpi.dashboard.%s.%s.%s', $periodType, $periodStart, $roleId ?? 'all');
+        return sprintf(
+            'kpi.dashboard.%s.%s.%s.%s',
+            $periodType,
+            $periodStart,
+            $roleId ?? 'all',
+            $employeeId ?? 'all'
+        );
     }
 
     private function flushDashboardCaches(string $periodType, ?string $periodStart = null): void

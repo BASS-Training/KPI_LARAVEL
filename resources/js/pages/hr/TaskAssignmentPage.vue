@@ -10,9 +10,11 @@ import { ClipboardList, CheckCircle2, Clock, Users } from 'lucide-vue-next';
 import { useToast } from '@/composables/useToast';
 import { useTaskAssignmentStore } from '@/stores/taskAssignment';
 import { useEmployeeStore } from '@/stores/employee';
+import { useKpiComponentStore } from '@/stores/kpiComponent';
 
 const store = useTaskAssignmentStore();
 const empStore = useEmployeeStore();
+const kpiComponentStore = useKpiComponentStore();
 const toast = useToast();
 
 const showForm = ref(false);
@@ -28,6 +30,8 @@ const emptyForm = () => ({
     assigned_to: '',
     start_date: '',
     end_date: '',
+    jenis_pekerjaan: 'Task KPI',
+    kpi_component_id: '',
     weight: '',
     target_value: '',
     status: 'Pending',
@@ -37,6 +41,9 @@ const form = reactive(emptyForm());
 const errors = reactive({});
 
 const tasks = computed(() => store.assignedTasks);
+const selectedKpiComponent = computed(() =>
+    kpiComponentStore.components.find((component) => String(component.id) === String(form.kpi_component_id))
+);
 
 const summary = computed(() => ({
     total: store.pagination.total,
@@ -75,6 +82,7 @@ onMounted(async () => {
     await Promise.all([
         store.fetchAssignedTasks(),
         empStore.fetchEmployees ? empStore.fetchEmployees() : empStore.fetchEmployees?.(),
+        kpiComponentStore.fetchComponents({ is_active: true }),
     ]);
 });
 
@@ -101,11 +109,25 @@ function openEdit(task) {
         assigned_to:  task.assigned_to ?? task.assignee?.id ?? '',
         start_date:   task.start_date ?? '',
         end_date:     task.end_date ?? '',
+        jenis_pekerjaan: task.jenis_pekerjaan ?? 'Task KPI',
+        kpi_component_id: task.kpi_component_id ?? task.kpi_component?.id ?? '',
         weight:       task.weight ?? '',
         target_value: task.target_value ?? '',
         status:       task.status ?? 'Pending',
     });
     showForm.value = true;
+}
+
+function applyKpiComponentDefaults() {
+    const component = selectedKpiComponent.value;
+
+    if (!component) return;
+
+    form.jenis_pekerjaan = component.objectives || 'Task KPI';
+    form.weight = component.bobot !== null && component.bobot !== undefined
+        ? Number(component.bobot) * 100
+        : form.weight;
+    form.target_value = component.target ?? form.target_value;
 }
 
 function validate() {
@@ -138,6 +160,8 @@ async function submit() {
             assigned_to:  Number(form.assigned_to),
             start_date:   form.start_date,
             end_date:     form.end_date,
+            jenis_pekerjaan: form.jenis_pekerjaan || 'Task KPI',
+            kpi_component_id: form.kpi_component_id ? Number(form.kpi_component_id) : null,
             weight:       form.weight !== '' ? Number(form.weight) : null,
             target_value: form.target_value !== '' ? Number(form.target_value) : null,
             status:       form.status,
@@ -316,6 +340,28 @@ function isOverdue(task) {
                     <label class="form-label">Judul Tugas <span class="text-red-500">*</span></label>
                     <Input v-model="form.judul" placeholder="Contoh: Buat laporan rekonsiliasi Q2" />
                     <p v-if="errors.judul" class="mt-1 text-xs text-red-500">{{ errors.judul }}</p>
+                </div>
+
+                <div>
+                    <label class="form-label">Komponen KPI</label>
+                    <select v-model="form.kpi_component_id" class="form-input" @change="applyKpiComponentDefaults">
+                        <option value="">Tanpa komponen KPI</option>
+                        <option
+                            v-for="component in kpiComponentStore.components"
+                            :key="component.id"
+                            :value="component.id"
+                        >
+                            {{ component.objectives }} - {{ component.jabatan || 'Semua Jabatan' }}
+                        </option>
+                    </select>
+                    <p class="mt-1 text-[11px] text-slate-400">
+                        Jika dipilih, bobot dan target akan mengikuti komponen KPI dan tetap bisa disesuaikan.
+                    </p>
+                </div>
+
+                <div>
+                    <label class="form-label">Jenis Pekerjaan</label>
+                    <Input v-model="form.jenis_pekerjaan" placeholder="Contoh: Task KPI, Administratif, Pelayanan" />
                 </div>
 
                 <div>
