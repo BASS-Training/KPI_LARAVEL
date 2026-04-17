@@ -24,6 +24,7 @@ const deleteLoading = ref(false);
 const emptyForm = () => ({
     judul: '',
     tanggal: '',
+    tanggal_selesai: '',
     jenis_pekerjaan: '',
     waktu_mulai: '',
     waktu_selesai: '',
@@ -113,9 +114,10 @@ function openEdit(task) {
     Object.assign(form, {
         judul: task.judul || '',
         tanggal: task.tanggal || task.start_date || '',
+        tanggal_selesai: task.end_date || task.tanggal || task.start_date || '',
         jenis_pekerjaan: task.jenis_pekerjaan || '',
-        waktu_mulai: task.waktu_mulai || '',
-        waktu_selesai: task.waktu_selesai || '',
+        waktu_mulai: normalizeTime(task.waktu_mulai),
+        waktu_selesai: normalizeTime(task.waktu_selesai),
         status: task.status || '',
         ada_delay: Boolean(task.ada_delay),
         ada_error: Boolean(task.ada_error),
@@ -138,8 +140,8 @@ async function submitForm() {
             const payload = isAssignedTaskEdit.value
                 ? {
                     status: form.status,
-                    waktu_mulai: form.waktu_mulai,
-                    waktu_selesai: form.waktu_selesai,
+                    waktu_mulai: normalizeTime(form.waktu_mulai),
+                    waktu_selesai: normalizeTime(form.waktu_selesai),
                     ada_delay: form.ada_delay,
                     ada_error: form.ada_error,
                     ada_komplain: form.ada_komplain,
@@ -233,6 +235,10 @@ const statusBadgeMap = {
     'Dalam Proses': 'badge-info',
     Pending: 'badge-warning',
 };
+
+function normalizeTime(value) {
+    return value ? String(value).slice(0, 5) : '';
+}
 </script>
 
 <template>
@@ -467,14 +473,28 @@ const statusBadgeMap = {
                             </div>
                             <div>
                                 <label class="form-label">Tanggal Selesai</label>
-                                <input v-model="form.tanggal" type="date" class="form-input" :disabled="isAssignedTaskEdit" />
+                                <input
+                                    v-if="isAssignedTaskEdit"
+                                    v-model="form.tanggal_selesai"
+                                    type="date"
+                                    class="form-input"
+                                    disabled
+                                />
+                                <input v-else v-model="form.tanggal" type="date" class="form-input" />
                             </div>
                         </div>
                     </div>
 
                     <div>
                         <label class="form-label">Jenis Pekerjaan</label>
-                        <select v-model="form.jenis_pekerjaan" class="form-input" :disabled="isAssignedTaskEdit">
+                        <input
+                            v-if="isAssignedTaskEdit"
+                            v-model="form.jenis_pekerjaan"
+                            type="text"
+                            class="form-input"
+                            disabled
+                        />
+                        <select v-else v-model="form.jenis_pekerjaan" class="form-input">
                             <option value="">Pilih jenis...</option>
                             <option v-for="opt in jobTypeOptions" :key="opt" :value="opt">{{ opt }}</option>
                         </select>

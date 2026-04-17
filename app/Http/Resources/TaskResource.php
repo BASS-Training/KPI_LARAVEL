@@ -22,8 +22,8 @@ class TaskResource extends JsonResource
             'status' => $this->status,
             'status_code' => $this->status_code,
             'status_label' => $this->status_label,
-            'waktu_mulai' => $this->waktu_mulai,
-            'waktu_selesai' => $this->waktu_selesai,
+            'waktu_mulai' => $this->formatTime($this->waktu_mulai),
+            'waktu_selesai' => $this->formatTime($this->waktu_selesai),
             'ada_delay' => (bool) $this->ada_delay,
             'ada_error' => (bool) $this->ada_error,
             'ada_komplain' => (bool) $this->ada_komplain,
@@ -49,5 +49,10 @@ class TaskResource extends JsonResource
             'created_at' => optional($this->created_at)->toISOString(),
             'updated_at' => optional($this->updated_at)->toISOString(),
         ];
+    }
+
+    private function formatTime(?string $value): ?string
+    {
+        return $value ? substr($value, 0, 5) : null;
     }
 }
