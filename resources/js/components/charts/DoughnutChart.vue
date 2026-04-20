@@ -18,6 +18,7 @@ const props = defineProps({
     title:  { type: String, default: '' },
     height: { type: Number, default: 240 },
     cutout: { type: String, default: '68%' },
+    showLegend: { type: Boolean, default: true },
 });
 
 const chartData = computed(() => ({
@@ -37,6 +38,7 @@ const chartOptions = computed(() => ({
     cutout: props.cutout,
     plugins: {
         legend: {
+            display: props.showLegend,
             position: 'bottom',
             labels: { boxWidth: 12, padding: 14, font: { size: 12 } },
         },

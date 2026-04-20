@@ -8,7 +8,6 @@ import CardContent from '@/components/ui/CardContent.vue';
 import CardHeader from '@/components/ui/CardHeader.vue';
 import CardTitle from '@/components/ui/CardTitle.vue';
 import Skeleton from '@/components/ui/Skeleton.vue';
-import BarChart from '@/components/charts/BarChart.vue';
 import DoughnutChart from '@/components/charts/DoughnutChart.vue';
 import LineChart from '@/components/charts/LineChart.vue';
 import KpiDetailDialog from '@/components/kpi-dashboard/KpiDetailDialog.vue';
@@ -120,18 +119,7 @@ const trendChartKey = computed(() => [
 
 const avgKpi = computed(() => Number(summary.value.average_kpi ?? 0));
 
-const teamPerformanceChart = computed(() => {
-    const topRows = filteredRows.value.slice(0, 8);
-    return {
-        labels: topRows.map((row) => row.user?.nama ?? '-'),
-        datasets: [{ label: 'KPI Score', data: topRows.map((r) => r.normalized_score), color: '#2563eb' }],
-    };
-});
-
-const teamPerformanceKey = computed(() => [
-    teamPerformanceChart.value.labels.join('|'),
-    teamPerformanceChart.value.datasets[0]?.data?.join('|') ?? '',
-].join('::'));
+const teamPerformanceRows = computed(() => filteredRows.value.slice(0, 8));
 
 const statusDistributionChart = computed(() => {
     const buckets = filteredRows.value.reduce(
@@ -151,6 +139,12 @@ const statusDistributionChart = computed(() => {
 });
 
 const statusDistributionKey = computed(() => statusDistributionChart.value.data.join('|'));
+
+const distributionLegend = computed(() => statusDistributionChart.value.labels.map((label, index) => ({
+    label,
+    value: statusDistributionChart.value.data[index] ?? 0,
+    color: statusDistributionChart.value.colors[index] ?? '#94a3b8',
+})));
 
 const topHighlights = computed(() => filteredRows.value.slice(0, 3));
 const topFiveRows = computed(() => filteredRows.value.slice(0, 5));
@@ -437,49 +431,108 @@ const { refresh, lastUpdated, isRefreshing } = useAutoRefresh(loadPage, { interv
             />
         </div>
 
-        <!-- ── Trend + Top performers ────────────────────────────────────────── -->
-        <div class="mt-5 grid gap-5 xl:grid-cols-[1.45fr_0.95fr]">
+        <!-- ── Dashboard cards ───────────────────────────────────────────────── -->
+        <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
             <!-- KPI Trend line chart -->
-            <Card class="overflow-hidden rounded-2xl border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <CardHeader class="border-b border-slate-100 px-5 py-4 dark:border-slate-800">
-                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div class="min-w-0">
-                            <div class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Trend analytics</div>
-                            <CardTitle class="mt-1 text-base font-semibold text-slate-900 dark:text-slate-100">KPI trend 6 bulan</CardTitle>
-                            <p class="mt-1 max-w-xl text-xs leading-5 text-slate-500 dark:text-slate-400">
-                                Rata-rata KPI dan jumlah karyawan aktif dalam periode yang dipilih.
+            <Card class="rounded-2xl border-gray-100 bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
+                <div class="space-y-4">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-slate-100">KPI Trend 6 Bulan</h3>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-slate-400">
+                                Rata-rata KPI dan jumlah karyawan aktif
                             </p>
                         </div>
-                        <Badge class="shrink-0">Trend chart</Badge>
+                        <button
+                            type="button"
+                            class="shrink-0 text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+                            @click="refresh"
+                        >
+                            Refresh
+                        </button>
                     </div>
-                </CardHeader>
-                <CardContent class="px-5 py-4">
+
                     <template v-if="dashboardStore.isLoadingTrend">
-                        <Skeleton class="h-64 rounded-2xl" />
+                        <Skeleton class="h-[280px] rounded-xl" />
                     </template>
                     <template v-else-if="!chartSeries.labels.length">
-                        <div class="flex h-64 items-center justify-center rounded-2xl border border-dashed border-slate-200 text-sm text-slate-400 dark:border-slate-800">
-                            Belum ada data trend KPI.
+                        <div class="flex h-[260px] items-center justify-center rounded-xl border border-dashed border-gray-200 text-sm text-gray-400 dark:border-slate-800">
+                            Data belum tersedia
                         </div>
                     </template>
-                    <LineChart
-                        v-else
-                        :key="trendChartKey"
-                        :labels="chartSeries.labels"
-                        :datasets="[
-                            { label: 'Avg KPI', data: chartSeries.average, color: '#2563eb', fill: true },
-                            { label: 'Karyawan aktif', data: chartSeries.employees, color: '#10b981', yAxisID: 'y1' },
-                        ]"
-                        title=""
-                        :height="250"
-                        y-label="Score"
-                        secondary-y-label="Karyawan"
-                        :y-max="100"
-                        legend-position="bottom"
-                        :animation-duration="1150"
-                        :delay-step="56"
-                    />
-                </CardContent>
+                    <div v-else class="h-[280px]">
+                        <LineChart
+                            :key="trendChartKey"
+                            :labels="chartSeries.labels"
+                            :datasets="[
+                                { label: 'Avg KPI', data: chartSeries.average, color: '#2563eb', fill: true },
+                                { label: 'Karyawan aktif', data: chartSeries.employees, color: '#10b981', yAxisID: 'y1' },
+                            ]"
+                            title=""
+                            :height="280"
+                            y-label="Score"
+                            secondary-y-label="Karyawan"
+                            :y-max="100"
+                            legend-position="bottom"
+                            :animation-duration="1150"
+                            :delay-step="56"
+                        />
+                    </div>
+                </div>
+            </Card>
+
+            <!-- Team performance progress bars -->
+            <Card class="rounded-2xl border-gray-100 bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
+                <div class="space-y-4">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-slate-100">Skor Tim Teratas</h3>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-slate-400">
+                                Perbandingan cepat untuk 8 karyawan tertinggi
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            class="shrink-0 text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+                            @click="currentPage = 1"
+                        >
+                            Lihat Detail
+                        </button>
+                    </div>
+
+                    <template v-if="dashboardStore.isLoadingDashboard">
+                        <Skeleton class="h-[280px] rounded-xl" />
+                    </template>
+                    <template v-else-if="!teamPerformanceRows.length">
+                        <div class="flex h-[260px] items-center justify-center rounded-xl border border-dashed border-gray-200 text-sm text-gray-400 dark:border-slate-800">
+                            Data belum tersedia
+                        </div>
+                    </template>
+                    <div v-else class="flex min-h-[260px] flex-col justify-center space-y-4">
+                        <button
+                            v-for="row in teamPerformanceRows"
+                            :key="`team-progress-${row.user?.id}`"
+                            type="button"
+                            class="group text-left"
+                            @click="openDetail(row.user?.id)"
+                        >
+                            <div class="flex items-center justify-between gap-3 text-sm">
+                                <span class="truncate font-medium text-gray-800 group-hover:text-blue-600 dark:text-slate-200 dark:group-hover:text-blue-400">
+                                    {{ row.user?.nama ?? '-' }}
+                                </span>
+                                <span class="font-semibold tabular-nums text-gray-500 dark:text-slate-400">
+                                    {{ row.normalized_score }}
+                                </span>
+                            </div>
+                            <div class="mt-2 h-2 rounded-full bg-gray-100 dark:bg-slate-800">
+                                <div
+                                    class="h-2 rounded-full bg-blue-500 transition-all duration-500"
+                                    :style="{ width: `${Math.min(100, Math.max(0, row.normalized_score))}%` }"
+                                />
+                            </div>
+                        </button>
+                    </div>
+                </div>
             </Card>
 
             <!-- Top performers + Mini Top5/Bottom5 leaderboard -->
@@ -627,98 +680,57 @@ const { refresh, lastUpdated, isRefreshing } = useAutoRefresh(loadPage, { interv
                     </template>
                 </CardContent>
             </Card>
-        </div>
-
-        <!-- ── Team bar + Doughnut ────────────────────────────────────────────── -->
-        <div class="mt-5 grid gap-5 xl:grid-cols-[1.35fr_1fr]">
-            <Card class="overflow-hidden rounded-2xl border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <CardHeader class="border-b border-slate-100 px-5 py-4 dark:border-slate-800">
-                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div class="min-w-0">
-                            <div class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Team performance</div>
-                            <CardTitle class="mt-1 text-base font-semibold text-slate-900 dark:text-slate-100">Skor tim teratas</CardTitle>
-                            <p class="mt-1 max-w-xl text-xs leading-5 text-slate-500 dark:text-slate-400">
-                                Perbandingan cepat untuk 8 karyawan dengan score tertinggi.
+            <Card class="rounded-2xl border-gray-100 bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
+                <div class="space-y-4">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-slate-100">Sebaran Status KPI</h3>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-slate-400">
+                                Komposisi performer baik, cukup, dan perlu perhatian
                             </p>
                         </div>
-                        <Badge class="shrink-0" variant="outline">Bar chart</Badge>
+                        <button
+                            type="button"
+                            class="shrink-0 text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+                            @click="currentPage = 1"
+                        >
+                            Lihat Detail
+                        </button>
                     </div>
-                </CardHeader>
-                <CardContent class="px-5 py-4">
-                    <template v-if="dashboardStore.isLoadingDashboard">
-                        <Skeleton class="h-64 rounded-2xl" />
-                    </template>
-                    <template v-else-if="!teamPerformanceChart.labels.length">
-                        <div class="flex h-64 items-center justify-center rounded-2xl border border-dashed border-slate-200 text-sm text-slate-400 dark:border-slate-800">
-                            Belum ada data performa tim.
-                        </div>
-                    </template>
-                    <BarChart
-                        v-else
-                        :key="teamPerformanceKey"
-                        :labels="teamPerformanceChart.labels"
-                        :datasets="teamPerformanceChart.datasets"
-                        :height="Math.max(245, teamPerformanceChart.labels.length * 34)"
-                        horizontal
-                        :show-legend="false"
-                        :x-max="100"
-                        y-label="KPI Score"
-                        :animation-duration="980"
-                        :delay-step="40"
-                    />
-                </CardContent>
-            </Card>
 
-            <Card class="overflow-hidden rounded-[28px] border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <CardHeader class="border-b border-slate-100 pb-4 dark:border-slate-800">
-                    <div class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Score distribution</div>
-                    <CardTitle class="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">Sebaran status KPI</CardTitle>
-                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                        Komposisi performer baik, cukup, dan perlu perhatian.
-                    </p>
-                </CardHeader>
-                <CardContent class="pt-4">
                     <template v-if="dashboardStore.isLoadingDashboard">
-                        <Skeleton class="h-72 rounded-2xl" />
+                        <Skeleton class="h-[260px] rounded-xl" />
                     </template>
                     <template v-else-if="!filteredRows.length">
-                        <div class="flex h-72 items-center justify-center rounded-2xl border border-dashed border-slate-200 text-sm text-slate-400 dark:border-slate-800">
-                            Belum ada data distribusi.
+                        <div class="flex h-[260px] items-center justify-center rounded-xl border border-dashed border-gray-200 text-sm text-gray-400 dark:border-slate-800">
+                            Data belum tersedia
                         </div>
                     </template>
-                    <div v-else class="space-y-5">
-                        <DoughnutChart
-                            :key="statusDistributionKey"
-                            :labels="statusDistributionChart.labels"
-                            :data="statusDistributionChart.data"
-                            :colors="statusDistributionChart.colors"
-                            :height="220"
-                        />
-                        <div class="grid gap-2">
-                            <div class="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-800/70">
-                                <div class="flex items-center gap-2">
-                                    <span class="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                                    <span class="text-sm text-slate-600 dark:text-slate-300">Good</span>
-                                </div>
-                                <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ statusDistributionChart.data[0] }}</span>
-                            </div>
-                            <div class="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-800/70">
-                                <div class="flex items-center gap-2">
-                                    <span class="h-2.5 w-2.5 rounded-full bg-amber-400" />
-                                    <span class="text-sm text-slate-600 dark:text-slate-300">Average</span>
-                                </div>
-                                <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ statusDistributionChart.data[1] }}</span>
-                            </div>
-                            <div class="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-800/70">
-                                <div class="flex items-center gap-2">
-                                    <span class="h-2.5 w-2.5 rounded-full bg-rose-500" />
-                                    <span class="text-sm text-slate-600 dark:text-slate-300">Bad</span>
-                                </div>
-                                <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ statusDistributionChart.data[2] }}</span>
+                    <div v-else class="flex min-h-[260px] flex-col items-center justify-center">
+                        <div class="h-[180px] w-[180px]">
+                            <DoughnutChart
+                                :key="statusDistributionKey"
+                                :labels="statusDistributionChart.labels"
+                                :data="statusDistributionChart.data"
+                                :colors="statusDistributionChart.colors"
+                                :height="180"
+                                :show-legend="false"
+                            />
+                        </div>
+
+                        <div class="mt-4 grid w-full grid-cols-3 gap-4 text-sm">
+                            <div
+                                v-for="item in distributionLegend"
+                                :key="item.label"
+                                class="flex min-w-0 items-center justify-center gap-2 rounded-xl bg-gray-50 px-3 py-2 dark:bg-slate-800/70"
+                            >
+                                <span class="h-2 w-2 shrink-0 rounded-full" :style="{ backgroundColor: item.color }" />
+                                <span class="truncate text-gray-600 dark:text-slate-300">{{ item.label }}</span>
+                                <span class="font-semibold tabular-nums text-gray-900 dark:text-slate-100">{{ item.value }}</span>
                             </div>
                         </div>
                     </div>
-                </CardContent>
+                </div>
             </Card>
         </div>
 
