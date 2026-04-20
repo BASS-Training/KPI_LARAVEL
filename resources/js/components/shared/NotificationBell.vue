@@ -23,6 +23,10 @@ async function handleMarkOne(id) {
     await store.markRead(id);
 }
 
+async function handleDelete(id) {
+    await store.deleteNotification(id);
+}
+
 function goToAll() {
     close();
     router.push('/notifikasi');
@@ -30,7 +34,12 @@ function goToAll() {
 
 const typeIcon = {
     low_performance:    '⚠️',
+    low_percentage:     '⚠️',
     deadline_reminder:  '🔔',
+    task_assigned:      '📋',
+    kpi_updated:        '📊',
+    report_approved:    '✅',
+    report_rejected:    '❌',
     info:               'ℹ️',
     success:            '✅',
 };
@@ -68,7 +77,8 @@ const typeIcon = {
         >
             <div
                 v-if="open"
-                class="absolute right-0 top-10 z-50 w-80 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"
+                class="absolute right-0 top-10 z-50 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"
+                style="width:360px"
             >
                 <!-- Header -->
                 <div class="flex items-center justify-between border-b border-slate-100 px-4 py-3">
@@ -100,26 +110,40 @@ const typeIcon = {
                         <div class="px-4 py-8 text-center text-sm text-slate-400">Tidak ada notifikasi.</div>
                     </template>
                     <template v-else>
-                        <button
+                        <div
                             v-for="n in store.recent"
                             :key="n.id"
-                            type="button"
                             :class="[
-                                'flex w-full gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50',
+                                'group flex w-full gap-3 px-4 py-3 transition-colors hover:bg-slate-50',
                                 !n.is_read ? 'bg-blue-50/60' : '',
                             ]"
-                            @click="handleMarkOne(n.id)"
                         >
-                            <span class="mt-0.5 text-base leading-none">{{ typeIcon[n.type] ?? '🔔' }}</span>
-                            <div class="min-w-0 flex-1">
-                                <p class="truncate text-[12px] font-semibold text-slate-800">{{ n.title }}</p>
-                                <p class="mt-0.5 line-clamp-2 text-[11px] text-slate-500">{{ n.body }}</p>
-                                <p class="mt-1 text-[10px] text-slate-400">
-                                    {{ new Date(n.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) }}
-                                </p>
+                            <button
+                                type="button"
+                                class="flex min-w-0 flex-1 gap-3 text-left"
+                                @click="handleMarkOne(n.id)"
+                            >
+                                <span class="mt-0.5 text-base leading-none">{{ typeIcon[n.type] ?? '🔔' }}</span>
+                                <div class="min-w-0 flex-1">
+                                    <p class="truncate text-[12px] font-semibold text-slate-800">{{ n.title }}</p>
+                                    <p class="mt-0.5 line-clamp-2 text-[11px] text-slate-500">{{ n.body }}</p>
+                                    <p class="mt-1 text-[10px] text-slate-400">
+                                        {{ new Date(n.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) }}
+                                    </p>
+                                </div>
+                            </button>
+                            <div class="flex shrink-0 flex-col items-end gap-1 pt-0.5">
+                                <button
+                                    type="button"
+                                    class="hidden h-5 w-5 items-center justify-center rounded text-slate-300 hover:bg-slate-100 hover:text-slate-500 group-hover:flex"
+                                    title="Hapus"
+                                    @click.stop="handleDelete(n.id)"
+                                >
+                                    ×
+                                </button>
+                                <div v-if="!n.is_read" class="h-2 w-2 rounded-full bg-blue-500" />
                             </div>
-                            <div v-if="!n.is_read" class="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-blue-500" />
-                        </button>
+                        </div>
                     </template>
                 </div>
 
