@@ -32,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(KpiTargetRepositoryInterface::class, EloquentKpiTargetRepository::class);
         $this->app->bind(KpiRecordRepositoryInterface::class, EloquentKpiRecordRepository::class);
         $this->app->bind(KpiScoreRepositoryInterface::class, EloquentKpiScoreRepository::class);
+
     }
 
     /**

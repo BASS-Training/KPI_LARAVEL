@@ -45,4 +45,15 @@ class NotificationController extends ApiController
 
         return $this->success(null, 'Semua notifikasi ditandai sudah dibaca');
     }
+
+    public function destroy(Request $request, KpiNotification $notification): JsonResponse
+    {
+        if ($notification->user_id !== $request->user()->id) {
+            return $this->error('Akses ditolak.', [], 403);
+        }
+
+        $notification->delete();
+
+        return $this->success(null, 'Notifikasi dihapus.');
+    }
 }

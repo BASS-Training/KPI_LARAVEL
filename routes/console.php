@@ -23,3 +23,9 @@ Schedule::command('kpi:check-deadlines --days=3')
     ->dailyAt('08:00')
     ->withoutOverlapping()
     ->onOneServer();
+
+// ── FCM push deadline reminders: every day at 07:00 ──────────────────────────
+Schedule::command('notify:deadline-reminder')
+    ->dailyAt('07:00')
+    ->withoutOverlapping()
+    ->onOneServer();
