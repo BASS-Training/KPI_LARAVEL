@@ -154,12 +154,7 @@ class KpiIndicatorController extends ApiController
         return $this->success(null, 'Indikator KPI berhasil dihapus.');
     }
 
-    /**
-     * @OA\Get(path="/kpi-indicators/meta", tags={"KPI Indicator"}, summary="Meta data untuk form indikator (departemen, jabatan, tipe formula)",
-     *     security={{"sanctum":{}}},
-     *     @OA\Response(response=200, description="OK")
-     * )
-     */
+    /** GET /kpi-indicators/meta — departments + Spatie roles for form selects */
     public function meta(): JsonResponse
     {
         return $this->success([

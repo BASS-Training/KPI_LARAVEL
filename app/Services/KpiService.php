@@ -28,6 +28,7 @@ class KpiService
         private readonly KpiTargetRepositoryInterface $targetRepository,
         private readonly KpiRecordRepositoryInterface $recordRepository,
         private readonly KpiScoreRepositoryInterface $scoreRepository,
+        private readonly NotificationService $notificationService,
         private readonly KpiFormulaEngine $formulaEngine = new KpiFormulaEngine(),
     ) {
     }
@@ -485,28 +486,30 @@ class KpiService
             ->whereYear('created_at', $year)
             ->exists();
 
-        if ($alreadyNotified) {
-            return;
-        }
-
-        KpiNotification::create([
-            'user_id' => $user->id,
-            'type'    => 'low_performance',
-            'title'   => 'Peringatan: KPI Di Bawah Standar',
-            'body'    => sprintf(
-                'Skor KPI Anda %.2f berada di bawah ambang batas %.0f. Tinjau indikator dengan pencapaian terendah dan susun rencana perbaikan bersama atasan.',
-                (float) $score->normalized_score,
-                $threshold
-            ),
-            'payload' => [
+        $employeePayload = [
                 'score'        => (float) $score->normalized_score,
                 'threshold'    => $threshold,
                 'status'       => $score->status,
                 'grade'        => $score->grade,
                 'period_start' => $periodStart->toDateString(),
                 'period_type'  => $score->period_type,
-            ],
-        ]);
+        ];
+
+        if (! $alreadyNotified) {
+            $this->notificationService->sendNotification(
+                $user,
+                'low_performance',
+                'Peringatan: KPI Di Bawah Standar',
+                sprintf(
+                    'Skor KPI Anda %.2f berada di bawah ambang batas %.0f. Tinjau indikator dengan pencapaian terendah dan susun rencana perbaikan bersama atasan.',
+                    (float) $score->normalized_score,
+                    $threshold
+                ),
+                $employeePayload,
+            );
+        }
+
+        $this->notifyHrLowPerformance($user, $score, $threshold, $employeePayload);
     }
 
     private function notifyKpiUpdated(
@@ -517,11 +520,19 @@ class KpiService
         float $achievementRatio,
         string $periodLabel,
     ): void {
-        KpiNotification::create([
-            'user_id' => $user->id,
-            'type'    => 'kpi_updated',
-            'title'   => 'Data KPI Anda Diperbarui',
-            'body'    => sprintf(
+        $payload = [
+                'indicator_id'      => $indicator->id,
+                'indicator_name'    => $indicator->name,
+                'actual_value'      => $actualValue,
+                'target_value'      => $targetValue,
+                'achievement_ratio' => round($achievementRatio * 100, 2),
+        ];
+
+        $this->notificationService->sendNotification(
+            $user,
+            'kpi_updated',
+            'Data KPI Anda Diperbarui',
+            sprintf(
                 'HR telah memperbarui KPI "%s" untuk periode %s. Aktual: %s, Target: %s, Pencapaian: %.1f%%.',
                 $indicator->name,
                 $periodLabel,
@@ -529,14 +540,99 @@ class KpiService
                 $targetValue,
                 $achievementRatio * 100
             ),
-            'payload' => [
-                'indicator_id'      => $indicator->id,
-                'indicator_name'    => $indicator->name,
-                'actual_value'      => $actualValue,
-                'target_value'      => $targetValue,
-                'achievement_ratio' => round($achievementRatio * 100, 2),
-            ],
-        ]);
+            $payload,
+        );
+
+        $this->notifyHrKpiUpdated($user, $indicator, $periodLabel, $payload);
+    }
+
+    private function notifyHrKpiUpdated(
+        User $employee,
+        KpiIndicator $indicator,
+        string $periodLabel,
+        array $payload,
+    ): void {
+        $hrUsers = $this->hrNotificationRecipients();
+
+        foreach ($hrUsers as $hr) {
+            $deduped = KpiNotification::query()
+                ->where('user_id', $hr->id)
+                ->where('type', 'kpi_updated')
+                ->whereDate('created_at', now()->toDateString())
+                ->where('payload->audience', 'hr')
+                ->where('payload->employee_id', $employee->id)
+                ->where('payload->indicator_id', $indicator->id)
+                ->where('payload->period_label', $periodLabel)
+                ->exists();
+
+            if ($deduped) {
+                continue;
+            }
+
+            $this->notificationService->sendNotification(
+                $hr,
+                'kpi_updated',
+                'KPI Pegawai Diperbarui',
+                sprintf(
+                    'KPI "%s" milik %s diperbarui untuk periode %s.',
+                    $indicator->name,
+                    $employee->nama,
+                    $periodLabel,
+                ),
+                array_merge($payload, [
+                    'audience' => 'hr',
+                    'employee_id' => $employee->id,
+                    'employee_name' => $employee->nama,
+                    'period_label' => $periodLabel,
+                ]),
+            );
+        }
+    }
+
+    private function notifyHrLowPerformance(User $employee, KpiScore $score, float $threshold, array $payload): void
+    {
+        $periodStart = optional($score->period_start);
+        $hrUsers = $this->hrNotificationRecipients();
+
+        foreach ($hrUsers as $hr) {
+            $deduped = KpiNotification::query()
+                ->where('user_id', $hr->id)
+                ->where('type', 'low_performance')
+                ->where('payload->audience', 'hr')
+                ->where('payload->employee_id', $employee->id)
+                ->where('payload->period_start', $periodStart->toDateString())
+                ->exists();
+
+            if ($deduped) {
+                continue;
+            }
+
+            $this->notificationService->sendNotification(
+                $hr,
+                'low_performance',
+                'Alert KPI Pegawai Rendah',
+                sprintf(
+                    '%s memiliki skor KPI %.2f, di bawah ambang %.0f untuk periode %s.',
+                    $employee->nama,
+                    (float) $score->normalized_score,
+                    $threshold,
+                    $periodStart->translatedFormat('F Y'),
+                ),
+                array_merge($payload, [
+                    'audience' => 'hr',
+                    'employee_id' => $employee->id,
+                    'employee_name' => $employee->nama,
+                ]),
+            );
+        }
+    }
+
+    private function hrNotificationRecipients(): Collection
+    {
+        return User::query()
+            ->where('role', 'hr_manager')
+            ->orWhereHas('roles', fn ($query) => $query->where('name', 'hr_manager'))
+            ->get();
     }
 
     private function resolveTaskScores(User $user, string $periodType, array $period): Collection

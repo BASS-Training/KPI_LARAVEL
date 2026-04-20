@@ -11,6 +11,12 @@ onMounted(() => store.fetchNotifications());
 useAutoRefresh(() => store.fetchNotifications(), { interval: 15_000 });
 
 const typeIcon = {
+    kpi_updated:       'KPI',
+    report_submitted:  'IN',
+    report_approved:   'OK',
+    report_rejected:   'NO',
+    task_assigned:     'TASK',
+    low_percentage:    '%',
     low_performance:   '⚠️',
     deadline_reminder: '🔔',
     info:              'ℹ️',
@@ -18,6 +24,12 @@ const typeIcon = {
 };
 
 const typeLabelMap = {
+    kpi_updated:       'Update KPI',
+    report_submitted:  'Laporan Masuk',
+    report_approved:   'Laporan Disetujui',
+    report_rejected:   'Laporan Ditolak',
+    task_assigned:     'Task Baru',
+    low_percentage:    'Pencapaian Rendah',
     low_performance:   'Performa Rendah',
     deadline_reminder: 'Pengingat Deadline',
     info:              'Informasi',
@@ -25,6 +37,12 @@ const typeLabelMap = {
 };
 
 const typeColorMap = {
+    kpi_updated:       'border-l-blue-400 bg-blue-50/40',
+    report_submitted:  'border-l-violet-400 bg-violet-50/40',
+    report_approved:   'border-l-green-400 bg-green-50/40',
+    report_rejected:   'border-l-red-400 bg-red-50/40',
+    task_assigned:     'border-l-sky-400 bg-sky-50/40',
+    low_percentage:    'border-l-orange-400 bg-orange-50/40',
     low_performance:   'border-l-red-400 bg-red-50/40',
     deadline_reminder: 'border-l-amber-400 bg-amber-50/40',
     info:              'border-l-blue-400 bg-blue-50/40',

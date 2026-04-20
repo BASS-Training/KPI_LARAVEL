@@ -239,7 +239,7 @@ class KpiReportController extends ApiController
                 $hr,
                 'report_submitted',
                 'Laporan KPI Baru Menunggu Review',
-                "{$submitterName} telah mengajukan laporan KPI "{$component}". Silakan periksa dan berikan review.",
+                "{$submitterName} telah mengajukan laporan KPI \"{$component}\". Silakan periksa dan berikan review.",
                 ['report_id' => $report->id],
             );
         });

@@ -76,9 +76,13 @@ class KpiAutomationTest extends TestCase
         ])->assertCreated();
 
         // Notifications now go to kpi_notifications (in-app notification center)
-        $this->assertDatabaseCount('kpi_notifications', 2); // 1 kpi_updated + 1 low_performance
+        $this->assertDatabaseCount('kpi_notifications', 4); // employee + HR kpi_updated and low_performance
         $this->assertDatabaseHas('kpi_notifications', [
             'user_id' => $employee->id,
+            'type' => 'low_performance',
+        ]);
+        $this->assertDatabaseHas('kpi_notifications', [
+            'user_id' => $actor->id,
             'type' => 'low_performance',
         ]);
     }

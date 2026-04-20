@@ -122,6 +122,11 @@ class NotificationSystemTest extends TestCase
             'type'    => 'kpi_updated',
         ]);
 
+        $this->assertDatabaseHas('kpi_notifications', [
+            'user_id' => $hr->id,
+            'type'    => 'kpi_updated',
+        ]);
+
         $notif = KpiNotification::where('user_id', $employee->id)
             ->where('type', 'kpi_updated')
             ->first();
@@ -129,6 +134,14 @@ class NotificationSystemTest extends TestCase
         $this->assertStringContainsString('Zero Error Dokumen', $notif->body);
         $this->assertNotNull($notif->payload);
         $this->assertEquals($indicator->id, $notif->payload['indicator_id']);
+
+        $hrNotif = KpiNotification::where('user_id', $hr->id)
+            ->where('type', 'kpi_updated')
+            ->first();
+
+        $this->assertStringContainsString($employee->nama, $hrNotif->body);
+        $this->assertEquals('hr', $hrNotif->payload['audience']);
+        $this->assertEquals($employee->id, $hrNotif->payload['employee_id']);
     }
 
     // ──────────────────────────────────────────────────────────────
@@ -166,11 +179,24 @@ class NotificationSystemTest extends TestCase
             'type'    => 'low_performance',
         ]);
 
+        $this->assertDatabaseHas('kpi_notifications', [
+            'user_id' => $hr->id,
+            'type'    => 'low_performance',
+        ]);
+
         $notif = KpiNotification::where('user_id', $employee->id)
             ->where('type', 'low_performance')
             ->first();
 
         $this->assertStringContainsString('30.00', $notif->body);
+
+        $hrNotif = KpiNotification::where('user_id', $hr->id)
+            ->where('type', 'low_performance')
+            ->first();
+
+        $this->assertStringContainsString($employee->nama, $hrNotif->body);
+        $this->assertEquals('hr', $hrNotif->payload['audience']);
+        $this->assertEquals($employee->id, $hrNotif->payload['employee_id']);
     }
 
     public function test_low_performance_notification_not_duplicated_in_same_period(): void
@@ -209,6 +235,14 @@ class NotificationSystemTest extends TestCase
             ->count();
 
         $this->assertEquals(1, $count, 'Only one low-performance notification per period should be created');
+
+        $hrCount = KpiNotification::where('user_id', $hr->id)
+            ->where('type', 'low_performance')
+            ->where('payload->audience', 'hr')
+            ->where('payload->employee_id', $employee->id)
+            ->count();
+
+        $this->assertEquals(1, $hrCount, 'Only one HR low-performance alert per employee period should be created');
     }
 
     public function test_no_low_performance_notification_when_score_is_good(): void

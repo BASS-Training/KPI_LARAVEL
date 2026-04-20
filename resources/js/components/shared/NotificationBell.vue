@@ -32,6 +32,11 @@ function goToAll() {
     router.push('/notifikasi');
 }
 
+function notificationIcon(type) {
+    if (type === 'report_submitted') return 'IN';
+    return typeIcon[type] ?? 'BEL';
+}
+
 const typeIcon = {
     low_performance:    '⚠️',
     low_percentage:     '⚠️',
@@ -123,7 +128,7 @@ const typeIcon = {
                                 class="flex min-w-0 flex-1 gap-3 text-left"
                                 @click="handleMarkOne(n.id)"
                             >
-                                <span class="mt-0.5 text-base leading-none">{{ typeIcon[n.type] ?? '🔔' }}</span>
+                                <span class="mt-0.5 text-base leading-none">{{ notificationIcon(n.type) }}</span>
                                 <div class="min-w-0 flex-1">
                                     <p class="truncate text-[12px] font-semibold text-slate-800">{{ n.title }}</p>
                                     <p class="mt-0.5 line-clamp-2 text-[11px] text-slate-500">{{ n.body }}</p>
