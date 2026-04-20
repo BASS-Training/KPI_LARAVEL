@@ -1,29 +1,36 @@
 FROM php:8.2-apache
 
-# Install dependency
+# Install dependencies
 RUN apt-get update && apt-get install -y \
     libzip-dev zip unzip curl git \
-    && docker-php-ext-install pdo pdo_mysql zip
+    && docker-php-ext-install pdo pdo_mysql zip \
+    && rm -rf /var/lib/apt/lists/*
 
 # Enable mod_rewrite
 RUN a2enmod rewrite
 
-# Copy project
-COPY . /var/www/html/
-
-# Set working dir
-WORKDIR /var/www/html
+# Set document root to public/
+RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 
 # Install composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Copy project
+COPY . /var/www/html/
+
+WORKDIR /var/www/html
+
 # Install Laravel dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Set permission
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Set document root ke public/
-RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 EXPOSE 80
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["apache2-foreground"]
