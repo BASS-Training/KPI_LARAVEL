@@ -15,6 +15,7 @@ class EmployeeController extends ApiController
     public function index(Request $request)
     {
         $employees = User::query()
+            ->with(['department', 'positionRef'])
             ->when($request->filled('jabatan'), fn ($query) => $query->where('jabatan', $request->string('jabatan')))
             ->when($request->filled('departemen'), fn ($query) => $query->where('departemen', $request->string('departemen')))
             ->orderBy('nama')

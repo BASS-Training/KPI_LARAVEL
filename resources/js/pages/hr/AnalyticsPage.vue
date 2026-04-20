@@ -1,6 +1,7 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useAnalyticsStore } from '@/stores/analytics';
+import { useAuthStore } from '@/stores/auth';
 import { useAutoRefresh, formatTime } from '@/composables/useAutoRefresh';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import LineChart from '@/components/charts/LineChart.vue';
@@ -10,6 +11,7 @@ import Skeleton from '@/components/ui/Skeleton.vue';
 import { downloadFile } from '@/services/api';
 
 const store = useAnalyticsStore();
+const authStore = useAuthStore();
 
 const yearOptions = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
 const selectedYear = ref(new Date().getFullYear());
@@ -77,10 +79,51 @@ const taskDistChart = computed(() => {
 });
 
 // Chart keys — change when data changes so Chart.js reinitialises
-const trendKey        = computed(() => trendChart.value.labels.join(','));
-const departmentKey     = computed(() => departmentChart.value.labels.join(','));
+const trendKey        = computed(() => [
+    trendChart.value.labels.join(','),
+    trendChart.value.datasets.map((ds) => ds.data.join(',')).join('|'),
+].join('::'));
+const departmentKey     = computed(() => [
+    departmentChart.value.labels.join(','),
+    departmentChart.value.datasets.map((ds) => ds.data.join(',')).join('|'),
+].join('::'));
 const distributionKey = computed(() => distributionChart.value.data.join(','));
 const taskDistKey     = computed(() => taskDistChart.value.data.join(','));
+
+let realtimeChannelName = null;
+let realtimeRefreshTimer = null;
+
+function scheduleRealtimeRefresh() {
+    window.clearTimeout(realtimeRefreshTimer);
+    realtimeRefreshTimer = window.setTimeout(() => {
+        refresh();
+    }, 250);
+}
+
+function bindRealtimeRefresh() {
+    const role = authStore.user?.role;
+
+    if (!window.Echo || !['admin', 'hr_manager', 'direktur'].includes(role)) {
+        return;
+    }
+
+    realtimeChannelName = `kpi.role.${role}`;
+    window.Echo.private(realtimeChannelName)
+        .listen('.kpi.updated', scheduleRealtimeRefresh);
+}
+
+function unbindRealtimeRefresh() {
+    window.clearTimeout(realtimeRefreshTimer);
+
+    if (realtimeChannelName && window.Echo) {
+        window.Echo.leave(realtimeChannelName);
+    }
+
+    realtimeChannelName = null;
+}
+
+onMounted(bindRealtimeRefresh);
+onUnmounted(unbindRealtimeRefresh);
 
 async function exportKpiCsv() {
     await downloadFile('/export/reports/csv', {

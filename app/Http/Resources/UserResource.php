@@ -18,6 +18,11 @@ class UserResource extends JsonResource
             'department_id' => $this->department_id,
             'department' => $this->whenLoaded('department', fn () => $this->department?->only(['id', 'nama', 'kode'])),
             'position_id' => $this->position_id,
+            'role_ref' => $this->whenLoaded('positionRef', fn () => $this->positionRef ? [
+                'id' => $this->positionRef->id,
+                'name' => $this->positionRef->nama,
+                'slug' => $this->positionRef->kode,
+            ] : null),
             'status_karyawan' => $this->status_karyawan,
             'tanggal_masuk' => optional($this->tanggal_masuk)->toDateString(),
             'no_hp' => $this->no_hp,

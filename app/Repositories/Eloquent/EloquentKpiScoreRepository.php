@@ -25,7 +25,7 @@ class EloquentKpiScoreRepository implements KpiScoreRepositoryInterface
     public function findUserScore(int $userId, string $periodType, string $periodStart): ?KpiScore
     {
         return KpiScore::query()
-            ->with(['user'])
+            ->with(['user.positionRef'])
             ->where('user_id', $userId)
             ->where('period_type', $periodType)
             ->whereDate('period_start', $periodStart)
@@ -35,7 +35,7 @@ class EloquentKpiScoreRepository implements KpiScoreRepositoryInterface
     public function getLeaderboard(string $periodType, string $periodStart, ?int $roleId = null): Collection
     {
         return KpiScore::query()
-            ->with(['user'])
+            ->with(['user.positionRef'])
             ->where('period_type', $periodType)
             ->whereDate('period_start', $periodStart)
             ->orderByDesc('normalized_score')

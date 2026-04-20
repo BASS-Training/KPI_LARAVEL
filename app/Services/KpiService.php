@@ -180,6 +180,7 @@ class KpiService
         string $periodType,
         string $periodStart,
         ?KpiIndicator $changedIndicator = null,
+        bool $silent = false,
     ): KpiScore {
         $indicators = $user->department_id
             ? $this->indicatorRepository->getForUser(null, (int) $user->department_id)
@@ -239,9 +240,15 @@ class KpiService
             ]
         )->loadMissing(['user']);
 
-        $this->notifyLowPerformance($user, $score);
+        if (! $silent) {
+            $this->notifyLowPerformance($user, $score);
+        }
+
         $this->flushDashboardCaches($periodType, $period['start']->toDateString());
-        event(new KPIUpdated($score, $changedIndicator));
+
+        if (! $silent) {
+            event(new KPIUpdated($score, $changedIndicator));
+        }
 
         return $score;
     }
@@ -251,6 +258,9 @@ class KpiService
         $period = $this->resolvePeriod($filters['period_type'], $filters['period']);
         $roleId = $filters['role_id'] ?? null;
         $employeeId = $filters['employee_id'] ?? null;
+
+        $this->ensureScoresForDashboard($period['type'], $period['start']->toDateString(), $roleId, $employeeId);
+
         return (function () use ($period, $roleId, $employeeId) {
             $scores = $this->scoreRepository->getLeaderboard(
                 $period['type'],
@@ -431,6 +441,28 @@ class KpiService
 
             return $score;
         });
+    }
+
+    private function ensureScoresForDashboard(
+        string $periodType,
+        string $periodStart,
+        ?int $roleId = null,
+        ?int $employeeId = null,
+    ): void {
+        $users = User::query()
+            ->select(['id', 'nip', 'nama', 'jabatan', 'departemen', 'email', 'role', 'department_id', 'position_id'])
+            ->where('role', 'pegawai')
+            ->when($roleId, fn ($query) => $query->where('position_id', $roleId))
+            ->when($employeeId, fn ($query) => $query->whereKey($employeeId))
+            ->get();
+
+        foreach ($users as $user) {
+            if ($this->scoreRepository->findUserScore($user->id, $periodType, $periodStart)) {
+                continue;
+            }
+
+            $this->recalculateUserScore($user, $periodType, $periodStart, silent: true);
+        }
     }
 
     private function notifyLowPerformance(User $user, KpiScore $score): void

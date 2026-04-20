@@ -11,7 +11,11 @@ class KpiScoreDetailResource extends JsonResource
     {
         return [
             'user' => new UserResource($this->whenLoaded('user', $this->user)),
-            'role' => $this->role?->only(['id', 'name', 'slug']),
+            'role' => $this->user?->positionRef ? [
+                'id' => $this->user->positionRef->id,
+                'name' => $this->user->positionRef->nama,
+                'slug' => $this->user->positionRef->kode,
+            ] : null,
             'period_type' => $this->period_type,
             'period_start' => optional($this->period_start)->toDateString(),
             'period_end' => optional($this->period_end)->toDateString(),

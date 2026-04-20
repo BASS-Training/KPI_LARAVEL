@@ -1,5 +1,5 @@
 <script setup>
-import { TransitionGroup, computed, onMounted, reactive, ref, watch } from 'vue';
+import { TransitionGroup, computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { Activity, Medal, RefreshCw, ShieldAlert, TrendingDown, TrendingUp, Users } from 'lucide-vue-next';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import Badge from '@/components/ui/Badge.vue';
@@ -16,6 +16,7 @@ import KpiFilters from '@/components/kpi-dashboard/KpiFilters.vue';
 import KpiLeaderboardTable from '@/components/kpi-dashboard/KpiLeaderboardTable.vue';
 import KpiSummaryCard from '@/components/kpi-dashboard/KpiSummaryCard.vue';
 import { useAutoRefresh, formatTime } from '@/composables/useAutoRefresh';
+import { useAuthStore } from '@/stores/auth';
 import { useEmployeeStore } from '@/stores/employee';
 import { useKpiDashboardStore } from '@/stores/kpiDashboard';
 
@@ -23,6 +24,7 @@ const props = defineProps({
     persona: { type: String, default: 'HR Control Center' },
 });
 
+const authStore = useAuthStore();
 const employeeStore = useEmployeeStore();
 const dashboardStore = useKpiDashboardStore();
 
@@ -110,6 +112,12 @@ const chartSeries = computed(() => ({
     employees: dashboardStore.trend.map((p) => p.employees),
 }));
 
+const trendChartKey = computed(() => [
+    chartSeries.value.labels.join('|'),
+    chartSeries.value.average.join('|'),
+    chartSeries.value.employees.join('|'),
+].join('::'));
+
 const avgKpi = computed(() => Number(summary.value.average_kpi ?? 0));
 
 const teamPerformanceChart = computed(() => {
@@ -119,6 +127,11 @@ const teamPerformanceChart = computed(() => {
         datasets: [{ label: 'KPI Score', data: topRows.map((r) => r.normalized_score), color: '#2563eb' }],
     };
 });
+
+const teamPerformanceKey = computed(() => [
+    teamPerformanceChart.value.labels.join('|'),
+    teamPerformanceChart.value.datasets[0]?.data?.join('|') ?? '',
+].join('::'));
 
 const statusDistributionChart = computed(() => {
     const buckets = filteredRows.value.reduce(
@@ -136,6 +149,8 @@ const statusDistributionChart = computed(() => {
         colors: ['#22c55e', '#f59e0b', '#ef4444'],
     };
 });
+
+const statusDistributionKey = computed(() => statusDistributionChart.value.data.join('|'));
 
 const topHighlights = computed(() => filteredRows.value.slice(0, 3));
 const topFiveRows = computed(() => filteredRows.value.slice(0, 5));
@@ -221,6 +236,38 @@ async function loadPage() {
     ]);
 }
 
+let realtimeChannelName = null;
+let realtimeRefreshTimer = null;
+
+function scheduleRealtimeRefresh() {
+    window.clearTimeout(realtimeRefreshTimer);
+    realtimeRefreshTimer = window.setTimeout(() => {
+        refresh();
+    }, 250);
+}
+
+function bindRealtimeRefresh() {
+    const role = authStore.user?.role;
+
+    if (!window.Echo || !['admin', 'hr_manager', 'direktur'].includes(role)) {
+        return;
+    }
+
+    realtimeChannelName = `kpi.role.${role}`;
+    window.Echo.private(realtimeChannelName)
+        .listen('.kpi.updated', scheduleRealtimeRefresh);
+}
+
+function unbindRealtimeRefresh() {
+    window.clearTimeout(realtimeRefreshTimer);
+
+    if (realtimeChannelName && window.Echo) {
+        window.Echo.leave(realtimeChannelName);
+    }
+
+    realtimeChannelName = null;
+}
+
 // ── Watches ───────────────────────────────────────────────────────────────────
 
 watch(filteredRows, (rows) => {
@@ -272,7 +319,12 @@ function handleSort(field) {
 
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
 
-onMounted(loadPage);
+onMounted(() => {
+    refresh();
+    bindRealtimeRefresh();
+});
+
+onUnmounted(unbindRealtimeRefresh);
 
 // Auto-refresh every 30 s — serves as the "realtime" polling mechanism
 const { refresh, lastUpdated, isRefreshing } = useAutoRefresh(loadPage, { interval: 30_000 });
@@ -412,6 +464,7 @@ const { refresh, lastUpdated, isRefreshing } = useAutoRefresh(loadPage, { interv
                     </template>
                     <LineChart
                         v-else
+                        :key="trendChartKey"
                         :labels="chartSeries.labels"
                         :datasets="[
                             { label: 'Avg KPI', data: chartSeries.average, color: '#2563eb', fill: true },
@@ -599,6 +652,7 @@ const { refresh, lastUpdated, isRefreshing } = useAutoRefresh(loadPage, { interv
                     </template>
                     <BarChart
                         v-else
+                        :key="teamPerformanceKey"
                         :labels="teamPerformanceChart.labels"
                         :datasets="teamPerformanceChart.datasets"
                         :height="285"
@@ -628,6 +682,7 @@ const { refresh, lastUpdated, isRefreshing } = useAutoRefresh(loadPage, { interv
                     </template>
                     <div v-else class="space-y-5">
                         <DoughnutChart
+                            :key="statusDistributionKey"
                             :labels="statusDistributionChart.labels"
                             :data="statusDistributionChart.data"
                             :colors="statusDistributionChart.colors"
