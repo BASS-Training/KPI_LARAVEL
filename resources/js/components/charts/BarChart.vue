@@ -21,6 +21,8 @@ const props = defineProps({
     horizontal:  { type: Boolean, default: false },
     yLabel:      { type: String,  default: '' },
     stacked:     { type: Boolean, default: false },
+    showLegend:  { type: Boolean, default: true },
+    xMax:         { type: Number,  default: null },
     animationDuration: { type: Number, default: 850 },
     delayStep: { type: Number, default: 32 },
 });
@@ -35,7 +37,7 @@ const chartData = computed(() => ({
         backgroundColor: ds.color ?? PALETTE[i % PALETTE.length],
         borderRadius:    6,
         borderSkipped:   false,
-        maxBarThickness: 48,
+        maxBarThickness: props.horizontal ? 22 : 48,
     })),
 }));
 
@@ -44,6 +46,7 @@ const chartOptions = computed(() => ({
     maintainAspectRatio: false,
     indexAxis: props.horizontal ? 'y' : 'x',
     interaction: { mode: 'index', intersect: false },
+    layout: { padding: { top: 2, right: 8, bottom: 0, left: 0 } },
     animation: {
         duration: props.animationDuration,
         easing: 'easeOutQuart',
@@ -63,7 +66,11 @@ const chartOptions = computed(() => ({
         },
     },
     plugins: {
-        legend: { position: 'top', labels: { boxWidth: 12, font: { size: 12 } } },
+        legend: {
+            display: props.showLegend,
+            position: 'top',
+            labels: { boxWidth: 12, font: { size: 12 } },
+        },
         title: {
             display: !!props.title,
             text: props.title,
@@ -76,13 +83,20 @@ const chartOptions = computed(() => ({
             stacked: props.stacked,
             grid: { display: !props.horizontal, color: '#f1f5f9' },
             ticks: { font: { size: 11 } },
+            suggestedMax: props.horizontal ? (props.xMax ?? undefined) : undefined,
+            title: {
+                display: props.horizontal && !!props.yLabel,
+                text: props.yLabel,
+                font: { size: 11 },
+            },
+            beginAtZero: props.horizontal,
         },
         y: {
             stacked: props.stacked,
             grid: { display: props.horizontal, color: '#f1f5f9' },
-            ticks: { font: { size: 11 } },
+            ticks: { autoSkip: false, font: { size: 11 } },
             title: {
-                display: !!props.yLabel,
+                display: !props.horizontal && !!props.yLabel,
                 text:    props.yLabel,
                 font:    { size: 11 },
             },

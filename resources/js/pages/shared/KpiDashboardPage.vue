@@ -438,27 +438,27 @@ const { refresh, lastUpdated, isRefreshing } = useAutoRefresh(loadPage, { interv
         </div>
 
         <!-- ── Trend + Top performers ────────────────────────────────────────── -->
-        <div class="mt-5 grid gap-5 xl:grid-cols-[1.6fr_0.9fr]">
+        <div class="mt-5 grid gap-5 xl:grid-cols-[1.45fr_0.95fr]">
             <!-- KPI Trend line chart -->
-            <Card class="overflow-hidden rounded-[28px] border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <CardHeader class="border-b border-slate-100 pb-4 dark:border-slate-800">
-                    <div class="flex items-start justify-between gap-3">
-                        <div>
-                            <div class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Trend analytics</div>
-                            <CardTitle class="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">KPI trend 6 bulan</CardTitle>
-                            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            <Card class="overflow-hidden rounded-2xl border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <CardHeader class="border-b border-slate-100 px-5 py-4 dark:border-slate-800">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="min-w-0">
+                            <div class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Trend analytics</div>
+                            <CardTitle class="mt-1 text-base font-semibold text-slate-900 dark:text-slate-100">KPI trend 6 bulan</CardTitle>
+                            <p class="mt-1 max-w-xl text-xs leading-5 text-slate-500 dark:text-slate-400">
                                 Rata-rata KPI dan jumlah karyawan aktif dalam periode yang dipilih.
                             </p>
                         </div>
-                        <Badge>Trend chart</Badge>
+                        <Badge class="shrink-0">Trend chart</Badge>
                     </div>
                 </CardHeader>
-                <CardContent class="pt-4">
+                <CardContent class="px-5 py-4">
                     <template v-if="dashboardStore.isLoadingTrend">
-                        <Skeleton class="h-72 rounded-2xl" />
+                        <Skeleton class="h-64 rounded-2xl" />
                     </template>
                     <template v-else-if="!chartSeries.labels.length">
-                        <div class="flex h-72 items-center justify-center rounded-2xl border border-dashed border-slate-200 text-sm text-slate-400 dark:border-slate-800">
+                        <div class="flex h-64 items-center justify-center rounded-2xl border border-dashed border-slate-200 text-sm text-slate-400 dark:border-slate-800">
                             Belum ada data trend KPI.
                         </div>
                     </template>
@@ -468,11 +468,14 @@ const { refresh, lastUpdated, isRefreshing } = useAutoRefresh(loadPage, { interv
                         :labels="chartSeries.labels"
                         :datasets="[
                             { label: 'Avg KPI', data: chartSeries.average, color: '#2563eb', fill: true },
-                            { label: 'Karyawan aktif', data: chartSeries.employees, color: '#10b981' },
+                            { label: 'Karyawan aktif', data: chartSeries.employees, color: '#10b981', yAxisID: 'y1' },
                         ]"
                         title=""
-                        :height="285"
+                        :height="250"
                         y-label="Score"
+                        secondary-y-label="Karyawan"
+                        :y-max="100"
+                        legend-position="bottom"
                         :animation-duration="1150"
                         :delay-step="56"
                     />
@@ -628,25 +631,25 @@ const { refresh, lastUpdated, isRefreshing } = useAutoRefresh(loadPage, { interv
 
         <!-- ── Team bar + Doughnut ────────────────────────────────────────────── -->
         <div class="mt-5 grid gap-5 xl:grid-cols-[1.35fr_1fr]">
-            <Card class="overflow-hidden rounded-[28px] border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <CardHeader class="border-b border-slate-100 pb-4 dark:border-slate-800">
-                    <div class="flex items-start justify-between gap-3">
-                        <div>
-                            <div class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Team performance</div>
-                            <CardTitle class="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">Skor tim teratas</CardTitle>
-                            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            <Card class="overflow-hidden rounded-2xl border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <CardHeader class="border-b border-slate-100 px-5 py-4 dark:border-slate-800">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="min-w-0">
+                            <div class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Team performance</div>
+                            <CardTitle class="mt-1 text-base font-semibold text-slate-900 dark:text-slate-100">Skor tim teratas</CardTitle>
+                            <p class="mt-1 max-w-xl text-xs leading-5 text-slate-500 dark:text-slate-400">
                                 Perbandingan cepat untuk 8 karyawan dengan score tertinggi.
                             </p>
                         </div>
-                        <Badge variant="outline">Bar chart</Badge>
+                        <Badge class="shrink-0" variant="outline">Bar chart</Badge>
                     </div>
                 </CardHeader>
-                <CardContent class="pt-4">
+                <CardContent class="px-5 py-4">
                     <template v-if="dashboardStore.isLoadingDashboard">
-                        <Skeleton class="h-72 rounded-2xl" />
+                        <Skeleton class="h-64 rounded-2xl" />
                     </template>
                     <template v-else-if="!teamPerformanceChart.labels.length">
-                        <div class="flex h-72 items-center justify-center rounded-2xl border border-dashed border-slate-200 text-sm text-slate-400 dark:border-slate-800">
+                        <div class="flex h-64 items-center justify-center rounded-2xl border border-dashed border-slate-200 text-sm text-slate-400 dark:border-slate-800">
                             Belum ada data performa tim.
                         </div>
                     </template>
@@ -655,7 +658,10 @@ const { refresh, lastUpdated, isRefreshing } = useAutoRefresh(loadPage, { interv
                         :key="teamPerformanceKey"
                         :labels="teamPerformanceChart.labels"
                         :datasets="teamPerformanceChart.datasets"
-                        :height="285"
+                        :height="Math.max(245, teamPerformanceChart.labels.length * 34)"
+                        horizontal
+                        :show-legend="false"
+                        :x-max="100"
                         y-label="KPI Score"
                         :animation-duration="980"
                         :delay-step="40"

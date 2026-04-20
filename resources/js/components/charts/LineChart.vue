@@ -21,6 +21,10 @@ const props = defineProps({
     title:    { type: String, default: '' },
     height:   { type: Number, default: 260 },
     yLabel:   { type: String, default: '' },
+    secondaryYLabel: { type: String, default: '' },
+    yMax: { type: Number, default: null },
+    showLegend: { type: Boolean, default: true },
+    legendPosition: { type: String, default: 'top' },
     animationDuration: { type: Number, default: 900 },
     delayStep: { type: Number, default: 48 },
 });
@@ -36,6 +40,7 @@ const chartData = computed(() => ({
         backgroundColor: (ds.color ?? PALETTE[i % PALETTE.length]) + '20',
         tension:         0.4,
         fill:            ds.fill ?? false,
+        yAxisID:         ds.yAxisID ?? 'y',
         pointRadius:     4,
         pointHoverRadius: 6,
         borderWidth:     2,
@@ -43,10 +48,13 @@ const chartData = computed(() => ({
     })),
 }));
 
+const usesSecondaryAxis = computed(() => props.datasets.some((ds) => ds.yAxisID === 'y1'));
+
 const chartOptions = computed(() => ({
     responsive: true,
     maintainAspectRatio: false,
     interaction: { mode: 'index', intersect: false },
+    layout: { padding: { top: 2, right: 4, bottom: 0, left: 0 } },
     animation: {
         duration: props.animationDuration,
         easing: 'easeOutQuart',
@@ -66,7 +74,19 @@ const chartOptions = computed(() => ({
         },
     },
     plugins: {
-        legend: { position: 'top', labels: { boxWidth: 12, font: { size: 12 } } },
+        legend: {
+            display: props.showLegend,
+            position: props.legendPosition,
+            align: 'end',
+            labels: {
+                boxWidth: 10,
+                boxHeight: 10,
+                usePointStyle: true,
+                pointStyle: 'circle',
+                padding: 14,
+                font: { size: 11 },
+            },
+        },
         title: {
             display: !!props.title,
             text: props.title,
@@ -91,10 +111,23 @@ const chartOptions = computed(() => ({
         y: {
             grid: { color: '#f1f5f9' },
             ticks: { font: { size: 11 } },
+            suggestedMax: props.yMax ?? undefined,
             title: {
                 display: !!props.yLabel,
                 text:    props.yLabel,
                 font:    { size: 11 },
+            },
+            beginAtZero: true,
+        },
+        y1: {
+            display: usesSecondaryAxis.value,
+            position: 'right',
+            grid: { drawOnChartArea: false },
+            ticks: { font: { size: 11 }, precision: 0 },
+            title: {
+                display: usesSecondaryAxis.value && !!props.secondaryYLabel,
+                text: props.secondaryYLabel,
+                font: { size: 11 },
             },
             beginAtZero: true,
         },
