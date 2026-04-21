@@ -7,6 +7,9 @@ import { useKpiColor } from '@/composables/useKpiColor';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import Avatar from '@/components/ui/Avatar.vue';
 import Skeleton from '@/components/ui/Skeleton.vue';
+import PageHeader from '@/components/shared/PageHeader.vue';
+import FilterPanel from '@/components/shared/FilterPanel.vue';
+import EmptyState from '@/components/shared/EmptyState.vue';
 import { downloadFile } from '@/services/api';
 
 const empStore = useEmployeeStore();
@@ -104,16 +107,12 @@ async function exportPdf() {
 
 <template>
     <AppLayout>
-        <!-- Hero -->
-        <section class="page-hero">
-            <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                <div>
-                    <div class="page-hero-meta">HR — Detail KPI</div>
-                    <h2 class="mt-4 text-2xl font-bold leading-tight md:text-3xl">Detail KPI Pegawai</h2>
-                    <p class="mt-2 max-w-xl text-sm leading-6 text-white/78">
-                        Tinjau komponen KPI, skor, dan breakdown penilaian per pegawai.
-                    </p>
-                </div>
+        <PageHeader
+            eyebrow="HR - Detail KPI"
+            title="Detail KPI Pegawai"
+            description="Tinjau profil, skor, breakdown indikator, dan performa pegawai per periode."
+        >
+            <template #actions>
                 <div class="flex items-center gap-2">
                     <span v-if="lastUpdated" class="text-[11px] text-white/50">{{ formatTime(lastUpdated) }}</span>
                     <button
@@ -126,29 +125,41 @@ async function exportPdf() {
                         </svg>
                     </button>
                 </div>
-            </div>
-        </section>
+            </template>
+        </PageHeader>
 
-        <!-- Filters -->
-        <div class="mb-5 flex flex-wrap items-center gap-3">
-            <select v-model="selectedUserId" class="form-input !w-auto min-w-[200px]">
+        <FilterPanel
+            title="Filter detail pegawai"
+            description="Pilih pegawai dan periode agar laporan KPI yang ditampilkan lebih spesifik."
+            :result-text="selectedEmployee ? `${selectedEmployee.nama} - ${monthLabel(filterBulan)} ${filterTahun}` : 'Pilih pegawai'"
+        >
+            <div class="space-y-2 xl:col-span-2">
+                <label class="form-label">Pegawai</label>
+                <select v-model="selectedUserId" class="form-input">
                 <option value="">— Pilih Pegawai —</option>
                 <option v-for="emp in empStore.employees" :key="emp.id" :value="String(emp.id)">
                     {{ emp.nama }} ({{ emp.jabatan || emp.role }})
                 </option>
-            </select>
+                </select>
+            </div>
 
-            <select v-model="filterBulan" class="form-input !w-auto">
+            <div class="space-y-2">
+                <label class="form-label">Bulan</label>
+                <select v-model="filterBulan" class="form-input">
                 <option v-for="m in months" :key="m.value" :value="m.value">{{ m.label }}</option>
-            </select>
+                </select>
+            </div>
 
-            <select v-model="filterTahun" class="form-input !w-auto">
+            <div class="space-y-2">
+                <label class="form-label">Tahun</label>
+                <select v-model="filterTahun" class="form-input">
                 <option v-for="y in years" :key="y" :value="y">{{ y }}</option>
-            </select>
+                </select>
+            </div>
 
             <button
                 v-if="selectedUserId"
-                class="btn-secondary text-xs"
+                class="btn-secondary self-end text-xs"
                 @click="exportPdf"
             >
                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -156,12 +167,14 @@ async function exportPdf() {
                 </svg>
                 Export PDF
             </button>
-        </div>
+        </FilterPanel>
 
         <!-- Empty state -->
-        <div v-if="!selectedUserId" class="dashboard-panel py-20 text-center text-sm text-slate-400">
-            Pilih pegawai dari dropdown di atas untuk melihat detail KPI.
-        </div>
+        <EmptyState
+            v-if="!selectedUserId"
+            title="Pilih pegawai terlebih dahulu"
+            description="Gunakan filter pegawai untuk melihat profil KPI, skor total, predikat, dan breakdown indikator."
+        />
 
         <template v-else>
             <!-- Loading -->
@@ -262,9 +275,11 @@ async function exportPdf() {
                 </div>
             </template>
 
-            <div v-else class="dashboard-panel py-16 text-center text-sm text-slate-400">
-                Gagal memuat data KPI. Coba pilih ulang pegawai.
-            </div>
+            <EmptyState
+                v-else
+                title="Data KPI gagal dimuat"
+                description="Coba pilih ulang pegawai atau refresh halaman untuk memuat data KPI terbaru."
+            />
         </template>
     </AppLayout>
 </template>

@@ -5,7 +5,9 @@ import Dialog from '@/components/ui/Dialog.vue';
 import Input from '@/components/ui/Input.vue';
 import Textarea from '@/components/ui/Textarea.vue';
 import Alert from '@/components/ui/Alert.vue';
-import Skeleton from '@/components/ui/Skeleton.vue';
+import PageHeader from '@/components/shared/PageHeader.vue';
+import EmptyState from '@/components/shared/EmptyState.vue';
+import LoadingRows from '@/components/shared/LoadingRows.vue';
 import { useToast } from '@/composables/useToast';
 import { useSlaStore } from '@/stores/sla';
 import { useDepartmentStore } from '@/stores/department';
@@ -151,15 +153,15 @@ async function confirmDelete() {
             <button class="btn-primary" @click="openCreate">Tambah SLA</button>
         </template>
 
-        <section class="page-hero">
-            <div>
-                <div class="page-hero-meta">HR Panel</div>
-                <h2 class="mt-4 text-2xl font-bold leading-tight md:text-3xl">SLA Pekerjaan</h2>
-                <p class="mt-2 max-w-xl text-sm leading-6 text-white/78">
-                    Kelola standar durasi kerja berdasarkan jabatan dan jenis pekerjaan.
-                </p>
-            </div>
-        </section>
+        <PageHeader
+            eyebrow="HR Panel"
+            title="SLA Pekerjaan"
+            description="Kelola standar durasi kerja berdasarkan jabatan dan jenis pekerjaan untuk memantau keterlambatan."
+        >
+            <template #actions>
+                <button class="btn-primary" @click="openCreate">Tambah SLA</button>
+            </template>
+        </PageHeader>
 
         <section class="dashboard-panel overflow-hidden">
             <div class="border-b border-slate-200 px-6 py-5">
@@ -169,9 +171,7 @@ async function confirmDelete() {
 
             <div class="p-6">
                 <template v-if="store.isLoading">
-                    <div class="space-y-3">
-                        <Skeleton v-for="i in 5" :key="i" class="h-14 rounded-2xl" />
-                    </div>
+                    <LoadingRows :rows="5" height="h-14" />
                 </template>
                 <template v-else-if="slas.length">
                     <div class="space-y-3">
@@ -190,9 +190,13 @@ async function confirmDelete() {
                         </div>
                     </div>
                 </template>
-                <div v-else class="py-14 text-center text-sm text-slate-400">
-                    Belum ada data SLA.
-                </div>
+                <EmptyState
+                    v-else
+                    title="Belum ada data SLA"
+                    description="Tambahkan SLA agar sistem dapat menilai deadline dan keterlambatan pekerjaan secara konsisten."
+                    action-label="Tambah SLA"
+                    @action="openCreate"
+                />
             </div>
         </section>
 

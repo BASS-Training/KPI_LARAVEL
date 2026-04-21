@@ -124,7 +124,7 @@ const avatarLetter = computed(() => (user.value?.nama || 'U').slice(0, 1).toUppe
                 collapsed ? 'justify-center' : 'gap-3',
             ]"
         >
-            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600">
+            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-600">
                 <svg class="h-4 w-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M4 19V5m0 14h16M8 15l3-3 3 2 4-6"/>
                 </svg>
@@ -207,7 +207,7 @@ const avatarLetter = computed(() => (user.value?.nama || 'U').slice(0, 1).toUppe
                         <!-- Active indicator bar -->
                         <span
                             v-if="isActive(item.to)"
-                            class="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-blue-400"
+                            class="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-red-500"
                         />
 
                         <span :class="['sidebar-link-icon', collapsed ? 'mx-auto' : '']">
@@ -249,7 +249,7 @@ const avatarLetter = computed(() => (user.value?.nama || 'U').slice(0, 1).toUppe
                     collapsed ? 'justify-center' : '',
                 ]"
             >
-                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white">
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-600 text-sm font-bold text-white">
                     {{ avatarLetter }}
                 </div>
 

@@ -25,7 +25,7 @@ const shouldRenderPlaceholder = computed(() => !props.options.some((option) => o
         :disabled="disabled"
         :class="cn(
             'flex h-9 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-sm text-slate-900 shadow-sm',
-            'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent',
             'disabled:cursor-not-allowed disabled:opacity-50',
             'dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100',
             $props.class

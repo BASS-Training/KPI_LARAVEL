@@ -1,8 +1,10 @@
 <script setup>
-import { provide, ref } from 'vue';
+import { onMounted, onUnmounted, provide, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import AppSidebar from './AppSidebar.vue';
 import AppTopbar from './AppTopbar.vue';
 
+const route = useRoute();
 const mobileMenuOpen = ref(false);
 // Collapse sidebar by default on tablet (< 1024px), expand on desktop
 const sidebarCollapsed = ref(typeof window !== 'undefined' && window.innerWidth < 1024);
@@ -13,6 +15,32 @@ provide('sidebarCollapsed', sidebarCollapsed);
 function toggleSidebar() {
     sidebarCollapsed.value = !sidebarCollapsed.value;
 }
+
+function closeMobileMenu() {
+    mobileMenuOpen.value = false;
+}
+
+function handleKeydown(event) {
+    if (event.key === 'Escape') closeMobileMenu();
+}
+
+watch(
+    () => route.fullPath,
+    closeMobileMenu
+);
+
+watch(mobileMenuOpen, (open) => {
+    document.body.classList.toggle('overflow-hidden', open);
+});
+
+onMounted(() => {
+    window.addEventListener('keydown', handleKeydown);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeydown);
+    document.body.classList.remove('overflow-hidden');
+});
 </script>
 
 <template>
@@ -38,10 +66,20 @@ function toggleSidebar() {
             leave-to-class="opacity-0"
         >
             <div v-if="mobileMenuOpen" class="fixed inset-0 z-40 md:hidden">
-                <div class="sidebar-overlay" @click="mobileMenuOpen = false" />
-                <div class="absolute inset-y-0 left-0 z-50 flex w-[240px] flex-col">
-                    <AppSidebar :collapsed="false" mobile @close="mobileMenuOpen = false" />
-                </div>
+                <div class="sidebar-overlay" @click="closeMobileMenu" />
+                <Transition
+                    appear
+                    enter-active-class="transition duration-200 ease-out"
+                    enter-from-class="-translate-x-full"
+                    enter-to-class="translate-x-0"
+                    leave-active-class="transition duration-150 ease-in"
+                    leave-from-class="translate-x-0"
+                    leave-to-class="-translate-x-full"
+                >
+                    <div class="absolute inset-y-0 left-0 z-50 flex w-[240px] flex-col">
+                        <AppSidebar :collapsed="false" mobile @close="closeMobileMenu" />
+                    </div>
+                </Transition>
             </div>
         </Transition>
 

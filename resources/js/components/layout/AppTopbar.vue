@@ -127,7 +127,7 @@ const avatarLetter = computed(() => (user.value?.nama || 'U').slice(0, 1).toUppe
 
             <!-- User chip — sm+ only -->
             <div class="hidden items-center gap-2 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 sm:flex dark:border-slate-700 dark:bg-slate-900">
-                <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-blue-600 text-[11px] font-bold text-white">
+                <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-red-600 text-[11px] font-bold text-white">
                     {{ avatarLetter }}
                 </div>
                 <div class="min-w-0">

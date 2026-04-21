@@ -4,6 +4,8 @@ import AppLayout from '@/components/layout/AppLayout.vue';
 import Button from '@/components/ui/Button.vue';
 import Input from '@/components/ui/Input.vue';
 import Select from '@/components/ui/Select.vue';
+import PageHeader from '@/components/shared/PageHeader.vue';
+import FilterPanel from '@/components/shared/FilterPanel.vue';
 import { RefreshCw } from 'lucide-vue-next';
 import { useToast } from '@/composables/useToast';
 import { useAutoRefresh, formatTime } from '@/composables/useAutoRefresh';
@@ -135,16 +137,12 @@ function handlePageChange(page) {
 
 <template>
     <AppLayout>
-        <section class="page-hero">
-            <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                <div>
-                    <div class="page-hero-meta">HR Manager | Review Center</div>
-                    <h1 class="mt-4 text-3xl font-semibold tracking-tight">Antrian review KPI yang fokus pada keputusan</h1>
-                    <p class="mt-3 max-w-2xl text-sm leading-6 text-white/80">
-                        Telusuri laporan berdasarkan pegawai, status, dan periode. Semua aksi review berjalan dari dialog tanpa kehilangan konteks halaman.
-                    </p>
-                </div>
-
+        <PageHeader
+            eyebrow="HR Manager | Review Center"
+            title="Antrian review KPI yang fokus pada keputusan"
+            description="Telusuri laporan berdasarkan pegawai, status, dan periode. Semua aksi review berjalan dari dialog tanpa kehilangan konteks halaman."
+        >
+            <template #actions>
                 <div class="flex items-center gap-3">
                     <span v-if="lastUpdated" class="text-xs text-white/55">{{ formatTime(lastUpdated) }}</span>
                     <Button variant="outline" class="!border-white/20 !bg-white/10 !text-white hover:!bg-white/20" @click="refresh">
@@ -152,26 +150,17 @@ function handlePageChange(page) {
                         Refresh
                     </Button>
                 </div>
-            </div>
-        </section>
+            </template>
+        </PageHeader>
 
         <KpiReportSummaryCards :items="summaryCards" />
 
-        <section class="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-            <div class="flex flex-col gap-5 border-b border-slate-100 pb-5 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Filter Review</p>
-                    <h2 class="mt-2 text-lg font-semibold text-slate-950">Persempit antrian tanpa kehilangan konteks</h2>
-                    <p class="mt-1 text-sm leading-6 text-slate-500">
-                        Cari laporan berdasarkan pegawai, status, dan periode untuk mempercepat keputusan review.
-                    </p>
-                </div>
-                <div class="rounded-2xl border border-emerald-100 bg-emerald-50/80 px-4 py-3 text-sm text-emerald-700">
-                    {{ store.pagination.total }} laporan ditemukan pada filter aktif
-                </div>
-            </div>
-
-            <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-[1.6fr_repeat(4,minmax(0,1fr))]">
+        <FilterPanel
+            eyebrow="Filter Review"
+            title="Persempit antrian tanpa kehilangan konteks"
+            description="Cari laporan berdasarkan pegawai, status, dan periode untuk mempercepat keputusan review."
+            :result-text="`${store.pagination.total} laporan ditemukan pada filter aktif`"
+        >
                 <div class="space-y-2">
                     <label class="form-label">Cari laporan</label>
                     <Input v-model="ui.search" placeholder="Cari nama pegawai, komponen KPI, atau catatan..." />
@@ -192,8 +181,7 @@ function handlePageChange(page) {
                     <label class="form-label">Tahun</label>
                     <Select v-model="ui.tahun" :options="yearOptions" />
                 </div>
-            </div>
-        </section>
+        </FilterPanel>
 
         <section class="space-y-4">
             <KpiReportSkeletonList v-if="store.isLoading" />

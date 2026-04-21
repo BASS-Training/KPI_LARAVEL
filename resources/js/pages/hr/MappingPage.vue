@@ -6,8 +6,11 @@ import { useAutoRefresh, formatTime } from '@/composables/useAutoRefresh';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import Dialog from '@/components/ui/Dialog.vue';
 import Alert from '@/components/ui/Alert.vue';
-import Skeleton from '@/components/ui/Skeleton.vue';
 import Avatar from '@/components/ui/Avatar.vue';
+import PageHeader from '@/components/shared/PageHeader.vue';
+import FilterPanel from '@/components/shared/FilterPanel.vue';
+import EmptyState from '@/components/shared/EmptyState.vue';
+import LoadingRows from '@/components/shared/LoadingRows.vue';
 import api from '@/services/api';
 
 const taskStore = useTaskStore();
@@ -153,53 +156,59 @@ function statusClass(status) {
 
 <template>
     <AppLayout>
-        <!-- Hero -->
-        <section class="page-hero">
-            <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-                <div>
-                    <div class="page-hero-meta">HR Monitoring</div>
-                    <h2 class="mt-4 text-2xl font-bold md:text-3xl">Mapping Pekerjaan ke KPI</h2>
-                    <p class="mt-2 max-w-3xl text-sm leading-6 text-white/78">
-                        Hubungkan setiap pekerjaan ke komponen KPI agar scoring dan ranking pegawai terbaca akurat.
-                    </p>
-                </div>
-                <div class="grid grid-cols-2 gap-3 lg:min-w-[320px]">
-                    <div class="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
+        <PageHeader
+            eyebrow="HR Monitoring"
+            title="Mapping Pekerjaan ke KPI"
+            description="Hubungkan setiap pekerjaan ke indikator KPI agar scoring dan ranking pegawai terbaca akurat."
+        >
+            <template #actions>
+                <div class="grid grid-cols-2 gap-3 sm:min-w-[320px]">
+                    <div class="rounded-lg border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
                         <div class="text-[11px] uppercase tracking-[0.18em] text-white/60">Belum Di-map</div>
-                        <div class="mt-2 text-2xl font-bold" :class="unmappedCount > 0 ? 'text-amber-300' : 'text-white'">
-                            {{ unmappedCount }}
-                        </div>
+                        <div class="mt-2 text-2xl font-bold" :class="unmappedCount > 0 ? 'text-amber-300' : 'text-white'">{{ unmappedCount }}</div>
                     </div>
-                    <div class="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
+                    <div class="rounded-lg border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
                         <div class="text-[11px] uppercase tracking-[0.18em] text-white/60">Sudah Di-map</div>
                         <div class="mt-2 text-2xl font-bold text-white">{{ mappedCount }}</div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </template>
+        </PageHeader>
 
-        <!-- Filters -->
-        <div class="mb-5 flex flex-wrap items-center gap-3">
+        <FilterPanel
+            title="Filter pekerjaan"
+            description="Cari pekerjaan berdasarkan pegawai, judul, dan periode kerja yang sedang dipetakan."
+            :result-text="`${displayedTasks.length} pekerjaan tampil`"
+        >
+            <div class="space-y-2 xl:col-span-2">
+                <label class="form-label">Pencarian</label>
             <input
                 v-model="filterSearch"
                 type="text"
                 placeholder="Cari pegawai atau judul..."
-                class="form-input !w-auto min-w-[200px]"
+                    class="form-input"
             />
+            </div>
 
-            <select v-model="filterBulan" class="form-input !w-auto">
+            <div class="space-y-2">
+                <label class="form-label">Bulan</label>
+                <select v-model="filterBulan" class="form-input">
                 <option v-for="m in months" :key="m.value" :value="m.value">{{ m.label }}</option>
             </select>
+            </div>
 
-            <select v-model="filterTahun" class="form-input !w-auto">
+            <div class="space-y-2">
+                <label class="form-label">Tahun</label>
+                <select v-model="filterTahun" class="form-input">
                 <option v-for="y in years" :key="y" :value="y">{{ y }}</option>
             </select>
+            </div>
 
-            <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50">
+            <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-red-200 hover:bg-red-50/40">
                 <input v-model="filterUnmapped" type="checkbox" class="rounded" />
                 Tampilkan belum di-map saja
             </label>
-        </div>
+        </FilterPanel>
 
         <!-- Table panel -->
         <section class="dashboard-panel overflow-hidden">
@@ -222,14 +231,14 @@ function statusClass(status) {
             </div>
 
             <template v-if="taskStore.isLoading">
-                <div class="space-y-3 p-6">
-                    <Skeleton v-for="i in 8" :key="i" class="h-16 rounded-2xl" />
-                </div>
+                <LoadingRows class="p-6" :rows="8" />
             </template>
 
-            <div v-else-if="!displayedTasks.length" class="py-16 text-center text-sm text-slate-400">
-                {{ filterUnmapped ? 'Semua pekerjaan bulan ini sudah di-map.' : 'Tidak ada data pekerjaan.' }}
-            </div>
+            <EmptyState
+                v-else-if="!displayedTasks.length"
+                :title="filterUnmapped ? 'Semua pekerjaan sudah di-map' : 'Tidak ada data pekerjaan'"
+                :description="filterUnmapped ? 'Tidak ada pekerjaan yang membutuhkan mapping KPI untuk filter aktif.' : 'Coba ubah pencarian, bulan, atau tahun untuk menemukan pekerjaan.'"
+            />
 
             <div v-else class="divide-y divide-slate-100">
                 <div
