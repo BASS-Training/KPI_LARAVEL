@@ -275,7 +275,10 @@ export function defaultRouteForRole(role) {
 
 router.beforeEach((to, _from, next) => {
     const token = localStorage.getItem('token');
-    const user = readStoredUser();
+    const user  = readStoredUser();
+
+    // Role aktif: pakai active_role (tenant-specific) jika ada, fallback ke role utama
+    const activeRole = localStorage.getItem('active_role') || user?.role;
 
     if (token && !user) {
         localStorage.removeItem('token');
@@ -285,7 +288,7 @@ router.beforeEach((to, _from, next) => {
     // Halaman guest-only (login): arahkan ke dashboard sesuai role jika sudah login
     if (to.meta.guest) {
         if (token && user) {
-            return next(defaultRouteForRole(user.role));
+            return next(defaultRouteForRole(activeRole));
         }
         return next();
     }
@@ -294,8 +297,8 @@ router.beforeEach((to, _from, next) => {
     if (to.meta.requiresAuth) {
         if (!token) return next('/login');
 
-        // Cek role jika route punya pembatasan role
-        if (to.meta.roles && !to.meta.roles.includes(user?.role)) {
+        // Cek role menggunakan activeRole (termasuk role rangkap)
+        if (to.meta.roles && !to.meta.roles.includes(activeRole)) {
             return next('/403');
         }
     }

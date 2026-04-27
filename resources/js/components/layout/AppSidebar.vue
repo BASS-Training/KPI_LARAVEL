@@ -165,7 +165,7 @@ navMap.tenant_admin = [
             >
                 <div v-if="!collapsed" class="min-w-0 flex-1">
                     <p class="truncate text-[13px] font-bold text-white">BASS KPI</p>
-                    <p class="truncate text-[10px] text-white/40">Training Center</p>
+                    <p class="truncate text-[10px] text-white/40">{{ auth.activeTenant?.tenant_name ?? 'KPI Dashboard' }}</p>
                 </div>
             </Transition>
 

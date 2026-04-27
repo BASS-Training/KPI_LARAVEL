@@ -23,6 +23,7 @@ class PositionController extends ApiController
             ->with('department:id,nama,kode')
             ->when($request->boolean('active_only'), fn ($q) => $q->where('is_active', true))
             ->when($request->filled('department_id'), fn ($q) => $q->where('department_id', $request->integer('department_id')))
+            ->when($request->filled('tenant_id'), fn ($q) => $q->where('tenant_id', $request->integer('tenant_id')))
             ->orderBy('nama')
             ->get();
 

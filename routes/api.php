@@ -128,6 +128,7 @@ use App\Http\Controllers\Api\TaskManagementController;
 use App\Http\Controllers\Api\ReportManagementController;
 use App\Http\Controllers\Api\AuditLogController;
 use App\Models\KpiTemplateIndicator;
+use App\Models\Tenant;
 
 // --- Super Admin: Tenant Management ---
 Route::middleware(['auth:sanctum', \App\Http\Middleware\SetTenantContext::class])
@@ -142,7 +143,11 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\SetTenantContext::class]
         Route::put('/{tenant}', [TenantController::class, 'update']);
         Route::patch('/{tenant}/activate', [TenantController::class, 'activate']);
         Route::patch('/{tenant}/deactivate', [TenantController::class, 'deactivate']);
+        Route::get('/{tenant}/users', [TenantController::class, 'users']);
     });
+
+    // My tenants (any authenticated user)
+    Route::get('/my/tenants', [UserManagementController::class, 'myTenants']);
 
     // --- User Management (Tenant Admin + HR Manager) ---
     Route::prefix('users')->middleware('role:super_admin,tenant_admin,hr_manager')->group(function () {
@@ -152,6 +157,12 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\SetTenantContext::class]
         Route::get('/{user}', [UserManagementController::class, 'show']);
         Route::put('/{user}', [UserManagementController::class, 'update']);
         Route::delete('/{user}', [UserManagementController::class, 'destroy']);
+
+        // Multi-tenant user assignment
+        Route::post('/{user}/tenants', [UserManagementController::class, 'assignToTenant'])
+            ->middleware('role:super_admin,tenant_admin');
+        Route::delete('/{user}/tenants/{tenant}', [UserManagementController::class, 'removeFromTenant'])
+            ->middleware('role:super_admin,tenant_admin');
     });
 
     // --- KPI Templates (HR Manager) ---

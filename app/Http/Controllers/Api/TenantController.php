@@ -180,4 +180,23 @@ class TenantController extends Controller
 
         return response()->json(['message' => 'Tenant deactivated.', 'data' => $tenant]);
     }
+
+    public function users(Tenant $tenant): JsonResponse
+    {
+        // Primary users (users.tenant_id = tenant.id)
+        $primary = \App\Models\User::withoutGlobalScopes()
+            ->with('roles')
+            ->where('tenant_id', $tenant->id)
+            ->get();
+
+        // Secondary users assigned via user_tenants pivot
+        $secondary = $tenant->secondaryUsers()
+            ->with('roles')
+            ->get()
+            ->map(fn ($u) => $u->setAttribute('_via_pivot', true));
+
+        $merged = $primary->merge($secondary)->unique('id')->values();
+
+        return response()->json(['data' => $merged]);
+    }
 }

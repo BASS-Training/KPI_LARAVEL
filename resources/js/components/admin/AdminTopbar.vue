@@ -8,8 +8,9 @@
       </nav>
     </div>
     <div class="topbar-right">
+      <TenantSwitcher />
       <span class="user-chip">
-        <span class="user-avatar">SA</span>
+        <span class="user-avatar">{{ initials(auth.user?.nama) }}</span>
         <span class="user-name">{{ auth.user?.nama ?? 'Super Admin' }}</span>
       </span>
     </div>
@@ -20,9 +21,14 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import TenantSwitcher from '@/components/admin/TenantSwitcher.vue'
 
 const route = useRoute()
 const auth  = useAuthStore()
+
+function initials(name = '') {
+  return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase() || 'SA'
+}
 
 const pageLabels = {
   '/admin':             'Dashboard',

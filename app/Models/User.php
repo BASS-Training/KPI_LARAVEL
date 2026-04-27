@@ -6,6 +6,7 @@ use App\Models\FcmToken;
 use App\Services\KpiCalculatorService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -32,6 +33,7 @@ class User extends Authenticatable
         'email',
         'role',
         'password',
+        'tenant_id',
     ];
 
     protected $hidden = [
@@ -45,6 +47,23 @@ class User extends Authenticatable
             'tanggal_masuk' => 'date',
             'password' => 'hashed',
         ];
+    }
+
+    public function tenants(): BelongsToMany
+    {
+        return $this->belongsToMany(Tenant::class, 'user_tenants')
+                    ->withPivot('role', 'is_primary')
+                    ->withTimestamps();
+    }
+
+    public function hasAccessToTenant(int $tenantId): bool
+    {
+        if ($this->hasRole('super_admin')) {
+            return true;
+        }
+
+        return (int) $this->tenant_id === $tenantId
+            || $this->tenants()->where('tenants.id', $tenantId)->exists();
     }
 
     public function department(): BelongsTo

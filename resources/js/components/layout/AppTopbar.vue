@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useTheme } from '@/composables/useTheme';
 import NotificationBell from '@/components/shared/NotificationBell.vue';
+import TenantSwitcher   from '@/components/admin/TenantSwitcher.vue';
 
 defineEmits(['open-sidebar', 'toggle-sidebar']);
 
@@ -49,8 +50,15 @@ const pageMap = {
     '/notifikasi': 'Notifikasi',
 };
 
-const pageTitle = computed(() => pageMap[route.path] ?? 'Dashboard KPI');
+const pageTitle    = computed(() => pageMap[route.path] ?? 'Dashboard KPI');
 const avatarLetter = computed(() => (user.value?.nama || 'U').slice(0, 1).toUpperCase());
+
+onMounted(() => {
+    // Refresh tenant list jika user punya multi-tenant access
+    if (!auth.isSuperAdmin && auth.isLoggedIn) {
+        auth.fetchMyTenants().catch(() => {});
+    }
+});
 </script>
 
 <template>
@@ -75,7 +83,7 @@ const avatarLetter = computed(() => (user.value?.nama || 'U').slice(0, 1).toUppe
                     {{ pageTitle }}
                 </h1>
                 <p class="hidden truncate text-[11px] text-slate-400 sm:block dark:text-slate-500">
-                    PT. BASS Training Center &amp; Consultant
+                    {{ auth.activeTenant?.tenant_name ?? 'KPI Dashboard' }}
                 </p>
             </div>
         </div>
@@ -122,6 +130,9 @@ const avatarLetter = computed(() => (user.value?.nama || 'U').slice(0, 1).toUppe
                 </svg>
             </button>
 
+            <!-- Tenant Switcher — hanya muncul jika user rangkap di >1 tenant -->
+            <TenantSwitcher />
+
             <!-- Notifications -->
             <NotificationBell />
 
@@ -135,7 +146,7 @@ const avatarLetter = computed(() => (user.value?.nama || 'U').slice(0, 1).toUppe
                         {{ user?.nama || '-' }}
                     </p>
                     <p class="max-w-[120px] truncate text-[10px] text-slate-400 dark:text-slate-500">
-                        {{ user?.jabatan || user?.role || '-' }}
+                        {{ auth.activeTenant?.tenant_name || user?.jabatan || user?.role || '-' }}
                     </p>
                 </div>
             </div>

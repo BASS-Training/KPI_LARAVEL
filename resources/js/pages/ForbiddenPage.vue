@@ -94,6 +94,6 @@ function goBack() {
         </div>
 
         <!-- Footer -->
-        <p class="absolute bottom-6 text-[11px] text-slate-600">BASS KPI — Training Center & Consultant</p>
+        <p class="absolute bottom-6 text-[11px] text-slate-600">BASS KPI System</p>
     </div>
 </template>

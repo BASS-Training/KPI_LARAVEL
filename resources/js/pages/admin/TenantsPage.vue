@@ -58,7 +58,8 @@
               </label>
               <label class="form-label">
                 Tenant Name *
-                <input v-model="form.tenant_name" class="form-input" placeholder="Company name" />
+                <input v-model="form.tenant_name" class="form-input" placeholder="Nama perusahaan/organisasi" />
+                <span class="form-hint">Nama ini tampil di sidebar &amp; topbar user.</span>
               </label>
               <label class="form-label">
                 Domain
@@ -196,6 +197,7 @@ onMounted(loadData)
 .form-input  { padding: 8px 11px; border: 1px solid #d1d5db; border-radius: 7px; font-size: 13px; outline: none; width: 100%; }
 .form-input:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
 .form-input:disabled { background: #f8fafc; color: #94a3b8; }
+.form-hint { font-size: 11px; color: #94a3b8; }
 .span-2 { grid-column: span 2; }
 .form-error  { color: #dc2626; font-size: 13px; margin-top: 10px; }
 .form-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9; }

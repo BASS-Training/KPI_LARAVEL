@@ -21,6 +21,7 @@ class DepartmentController extends ApiController
     {
         $departments = Department::query()
             ->when($request->boolean('active_only'), fn ($q) => $q->where('is_active', true))
+            ->when($request->filled('tenant_id'), fn ($q) => $q->where('tenant_id', $request->integer('tenant_id')))
             ->orderBy('nama')
             ->get();
 

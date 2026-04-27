@@ -83,7 +83,7 @@ async function handleLogin() {
             <section class="flex items-center px-5 py-8 sm:px-8 lg:px-10">
                 <div class="mx-auto w-full max-w-md">
                     <div class="mb-8">
-                        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">PT. BASS Training Center &amp; Consultant</p>
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">BASS KPI System</p>
                         <h2 class="mt-3 text-3xl font-bold text-slate-900">Masuk ke Dashboard KPI</h2>
                         <p class="mt-2 text-sm leading-6 text-slate-500">Gunakan NIP dan nama lengkap yang sudah terdaftar.</p>
                     </div>

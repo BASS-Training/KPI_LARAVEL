@@ -47,5 +47,14 @@ export const useUserManagementStore = defineStore('userManagement', () => {
     users.value = users.value.filter(u => u.id !== id)
   }
 
-  return { users, roles, meta, loading, error, fetchAll, fetchRoles, create, update, remove }
+  async function assignToTenant(userId, payload) {
+    const { data } = await api.post(`/v2/users/${userId}/tenants`, payload)
+    return data
+  }
+
+  async function removeFromTenant(userId, tenantId) {
+    await api.delete(`/v2/users/${userId}/tenants/${tenantId}`)
+  }
+
+  return { users, roles, meta, loading, error, fetchAll, fetchRoles, create, update, remove, assignToTenant, removeFromTenant }
 })
