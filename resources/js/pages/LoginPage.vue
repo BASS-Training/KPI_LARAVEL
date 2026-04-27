@@ -98,7 +98,7 @@ async function handleLogin() {
                             <Input
                                 v-model="form.nip"
                                 class="!rounded-xl !border-slate-200 !px-4 !py-3"
-                                placeholder="Contoh: BASS-HR-01-2026"
+                                placeholder="Contoh: XXXX-XX-XX-XXXX"
                                 maxlength="30"
                                 :disabled="auth.isLoading"
                             />
