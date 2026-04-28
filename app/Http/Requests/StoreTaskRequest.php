@@ -58,8 +58,10 @@ class StoreTaskRequest extends SanitizedFormRequest
 
         return [
             'tanggal' => ['required', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:tanggal'],
             'judul' => ['required', 'string', 'max:255'],
             'jenis_pekerjaan' => ['required', 'string', 'max:255'],
+            'kpi_indicator_id' => ['nullable', 'exists:kpi_indicators,id'],
             'status' => ['required', Rule::in(['Selesai', 'Dalam Proses', 'Pending'])],
             'waktu_mulai' => ['nullable', 'date_format:H:i'],
             'waktu_selesai' => ['nullable', 'date_format:H:i'],
@@ -74,6 +76,6 @@ class StoreTaskRequest extends SanitizedFormRequest
     public function isManualAssignmentPayload(): bool
     {
         return $this->route('task')?->task_type === Task::TYPE_MANUAL_ASSIGNMENT
-            || $this->hasAny(['assigned_to', 'start_date', 'end_date', 'weight', 'target_value', 'actual_value', 'title']);
+            || $this->hasAny(['assigned_to', 'start_date', 'weight', 'actual_value', 'title']);
     }
 }

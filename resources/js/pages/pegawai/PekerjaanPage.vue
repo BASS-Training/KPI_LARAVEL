@@ -27,7 +27,8 @@ const deleteLoading = ref(false);
 
 const emptyForm = () => ({
     judul: '',
-    tanggal: '',
+    start_date: '',
+    end_date: '',
     jenis_pekerjaan: '',
     waktu_mulai: '',
     waktu_selesai: '',
@@ -83,7 +84,7 @@ onMounted(() => {
 });
 
 function validate() {
-    Object.assign(formErrors, { judul: '', tanggal: '', jenis_pekerjaan: '', status: '', waktu_selesai: '' });
+    Object.assign(formErrors, { judul: '', start_date: '', end_date: '', jenis_pekerjaan: '', status: '', waktu_selesai: '' });
 
     let valid = true;
 
@@ -92,8 +93,13 @@ function validate() {
         valid = false;
     }
 
-    if (!isAssignedTaskEdit.value && !form.tanggal) {
-        formErrors.tanggal = 'Tanggal wajib diisi.';
+    if (!isAssignedTaskEdit.value && !form.start_date) {
+        formErrors.start_date = 'Tanggal mulai wajib diisi.';
+        valid = false;
+    }
+
+    if (form.start_date && form.end_date && form.end_date < form.start_date) {
+        formErrors.end_date = 'Tanggal selesai tidak boleh sebelum tanggal mulai.';
         valid = false;
     }
 
@@ -132,7 +138,8 @@ function openEdit(task) {
     editTaskType.value = task.task_type || null;
     Object.assign(form, {
         judul: task.judul || '',
-        tanggal: task.tanggal || task.start_date || '',
+        start_date: task.start_date || task.tanggal || '',
+        end_date: task.end_date || '',
         jenis_pekerjaan: task.jenis_pekerjaan || '',
         waktu_mulai: task.waktu_mulai || '',
         waktu_selesai: task.waktu_selesai || '',
@@ -185,7 +192,8 @@ async function submitForm() {
                 }
                 : {
                     judul: form.judul,
-                    tanggal: form.tanggal,
+                    tanggal: form.start_date,
+                    end_date: form.end_date || '',
                     jenis_pekerjaan: form.jenis_pekerjaan,
                     status: form.status,
                     waktu_mulai: form.waktu_mulai,
@@ -201,7 +209,8 @@ async function submitForm() {
         } else {
             const base = {
                 judul: form.judul,
-                tanggal: form.tanggal,
+                tanggal: form.start_date,
+                end_date: form.end_date || '',
                 jenis_pekerjaan: form.jenis_pekerjaan,
                 status: form.status,
                 waktu_mulai: form.waktu_mulai,
@@ -533,13 +542,14 @@ const statusBadgeMap = {
                     <!-- Tanggal Mulai & Selesai -->
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
-                            <label class="form-label">Tanggal Mulai</label>
-                            <input v-model="form.tanggal" type="date" class="form-input" :disabled="isAssignedTaskEdit" />
-                            <p v-if="formErrors.tanggal" class="mt-1 text-xs text-red-500">{{ formErrors.tanggal }}</p>
+                            <label class="form-label">Tanggal Mulai <span class="text-red-500">*</span></label>
+                            <input v-model="form.start_date" type="date" class="form-input" :disabled="isAssignedTaskEdit" />
+                            <p v-if="formErrors.start_date" class="mt-1 text-xs text-red-500">{{ formErrors.start_date }}</p>
                         </div>
                         <div>
                             <label class="form-label">Tanggal Selesai</label>
-                            <input v-model="form.tanggal" type="date" class="form-input" :disabled="isAssignedTaskEdit" />
+                            <input v-model="form.end_date" type="date" class="form-input" :min="form.start_date || undefined" :disabled="isAssignedTaskEdit" />
+                            <p v-if="formErrors.end_date" class="mt-1 text-xs text-red-500">{{ formErrors.end_date }}</p>
                         </div>
                     </div>
 
