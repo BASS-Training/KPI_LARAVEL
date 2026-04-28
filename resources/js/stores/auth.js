@@ -45,10 +45,10 @@ export const useAuthStore = defineStore('auth', () => {
             localStorage.setItem('token', rawToken);
             localStorage.setItem('user', JSON.stringify(rawUser));
 
-            router.push(defaultRouteForRole(rawUser.role));
+            // Fetch tenant dulu agar activeTenantId tersedia sebelum dashboard load
+            await fetchMyTenants().catch(() => {});
 
-            // Fetch accessible tenants after login
-            fetchMyTenants().catch(() => {});
+            await router.push(defaultRouteForRole(rawUser.role));
 
             return resp;
         } finally {

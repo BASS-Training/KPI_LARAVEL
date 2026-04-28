@@ -439,7 +439,7 @@ const statusBadgeMap = {
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 gap-4 border-t pt-6 md:grid-cols-[1.2fr_0.8fr]">
+                        <div class="grid grid-cols-1 gap-4 border-t pt-4 sm:grid-cols-[1.2fr_0.8fr]">
                             <div class="space-y-3">
                                 <div class="flex items-center justify-between text-sm">
                                     <span class="text-muted-foreground">Progress Task</span>
@@ -460,12 +460,12 @@ const statusBadgeMap = {
 
                             <div class="rounded-2xl border bg-slate-50/70 p-4 space-y-3">
                                 <p class="text-sm font-medium text-slate-900">Aksi Cepat</p>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <button type="button" class="btn-secondary justify-center" @click="openEdit(task)">Edit</button>
+                                <div class="flex flex-wrap gap-2">
+                                    <button type="button" class="btn-secondary flex-1 justify-center sm:flex-none" @click="openEdit(task)">Edit</button>
                                     <button
                                         v-if="task.task_type !== 'manual_assignment'"
                                         type="button"
-                                        class="btn-danger justify-center"
+                                        class="btn-danger flex-1 justify-center sm:flex-none"
                                         @click="openDeleteDialog(task)"
                                     >
                                         Hapus
@@ -504,23 +504,21 @@ const statusBadgeMap = {
         <Dialog
             v-model:open="showForm"
             :title="editMode ? 'Edit Pekerjaan' : 'Input Pekerjaan Baru'"
-            class="max-w-3xl"
+            class="w-full max-w-lg sm:max-w-2xl"
         >
-            <div v-if="formError" class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {{ formError }}
-            </div>
+            <!-- Scrollable body -->
+            <div class="max-h-[70vh] overflow-y-auto pr-1">
+                <div v-if="formError" class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {{ formError }}
+                </div>
 
-                <div class="space-y-6">
-                    <div class="space-y-2">
-                        <h3 class="text-lg font-semibold text-slate-950">{{ editMode ? 'Perbarui detail task' : 'Buat task baru' }}</h3>
-                        <p class="text-sm text-muted-foreground">Form dirapikan dengan spacing yang lebih lega agar proses input terasa lebih nyaman.</p>
-                        <p v-if="isAssignedTaskEdit" class="text-xs text-amber-600">
-                            Untuk task dari HR, pegawai hanya bisa memperbarui progres, waktu pengerjaan, indikator masalah, dan deskripsi.
-                        </p>
-                    </div>
+                <p v-if="isAssignedTaskEdit" class="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                    Task dari HR — hanya status, waktu, indikator masalah, dan deskripsi yang bisa diubah.
+                </p>
 
-                <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    <div class="md:col-span-2">
+                <div class="space-y-4">
+                    <!-- Judul -->
+                    <div>
                         <label class="form-label">Judul Pekerjaan</label>
                         <input
                             v-model="form.judul"
@@ -532,112 +530,112 @@ const statusBadgeMap = {
                         <p v-if="formErrors.judul" class="mt-1 text-xs text-red-500">{{ formErrors.judul }}</p>
                     </div>
 
-                    <div class="md:col-span-2">
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <div>
-                                <label class="form-label">Tanggal Mulai</label>
-                                <input v-model="form.tanggal" type="date" class="form-input" :disabled="isAssignedTaskEdit" />
-                                <p v-if="formErrors.tanggal" class="mt-1 text-xs text-red-500">{{ formErrors.tanggal }}</p>
-                            </div>
-                            <div>
-                                <label class="form-label">Tanggal Selesai</label>
-                                <input v-model="form.tanggal" type="date" class="form-input" :disabled="isAssignedTaskEdit" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="form-label">Jenis Pekerjaan</label>
-                        <select v-model="form.jenis_pekerjaan" class="form-input" :disabled="isAssignedTaskEdit">
-                            <option value="">Pilih jenis...</option>
-                            <option v-for="opt in jobTypeOptions" :key="opt" :value="opt">{{ opt }}</option>
-                        </select>
-                        <p v-if="formErrors.jenis_pekerjaan" class="mt-1 text-xs text-red-500">{{ formErrors.jenis_pekerjaan }}</p>
-                    </div>
-
-                    <div>
-                        <label class="form-label">Indikator KPI</label>
-                        <select v-model="form.kpi_indicator_id" class="form-input" :disabled="isAssignedTaskEdit">
-                            <option value="">— Tanpa indikator KPI —</option>
-                            <option v-for="opt in indicatorOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-                        </select>
-                        <p class="mt-1 text-[11px] text-slate-400">Hubungkan pekerjaan ini ke indikator KPI divisi Anda.</p>
-                    </div>
-
-                    <div>
-                        <label class="form-label">Status Pekerjaan</label>
-                        <select v-model="form.status" class="form-input">
-                            <option value="">Pilih status...</option>
-                            <option v-for="opt in statusOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-                        </select>
-                        <p v-if="formErrors.status" class="mt-1 text-xs text-red-500">{{ formErrors.status }}</p>
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <div>
-                                <label class="form-label">Waktu Mulai</label>
-                                <input v-model="form.waktu_mulai" type="time" class="form-input" />
-                            </div>
-                            <div>
-                                <label class="form-label">Waktu Selesai</label>
-                                <input v-model="form.waktu_selesai" type="time" class="form-input" />
-                                <p v-if="formErrors.waktu_selesai" class="mt-1 text-xs text-red-500">{{ formErrors.waktu_selesai }}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="md:col-span-2 border-t pt-6 space-y-4">
+                    <!-- Tanggal Mulai & Selesai -->
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
-                            <label class="form-label">Indikator Masalah</label>
-                            <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
-                                <label
-                                    v-for="flag in [
-                                        { key: 'ada_delay', label: 'Ada Delay' },
-                                        { key: 'ada_error', label: 'Ada Error' },
-                                        { key: 'ada_komplain', label: 'Ada Komplain' },
-                                    ]"
-                                    :key="flag.key"
-                                    class="flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-medium transition-colors"
-                                    :class="form[flag.key]
-                                        ? 'border-red-300 bg-red-50 text-red-700'
-                                        : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'"
-                                >
-                                    <input type="checkbox" v-model="form[flag.key]" class="h-4 w-4 rounded border-slate-300" />
-                                    {{ flag.label }}
-                                </label>
-                            </div>
+                            <label class="form-label">Tanggal Mulai</label>
+                            <input v-model="form.tanggal" type="date" class="form-input" :disabled="isAssignedTaskEdit" />
+                            <p v-if="formErrors.tanggal" class="mt-1 text-xs text-red-500">{{ formErrors.tanggal }}</p>
+                        </div>
+                        <div>
+                            <label class="form-label">Tanggal Selesai</label>
+                            <input v-model="form.tanggal" type="date" class="form-input" :disabled="isAssignedTaskEdit" />
                         </div>
                     </div>
 
-                    <div class="md:col-span-2 border-t pt-6">
+                    <!-- Jenis & Indikator KPI -->
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label class="form-label">Jenis Pekerjaan</label>
+                            <select v-model="form.jenis_pekerjaan" class="form-input" :disabled="isAssignedTaskEdit">
+                                <option value="">Pilih jenis...</option>
+                                <option v-for="opt in jobTypeOptions" :key="opt" :value="opt">{{ opt }}</option>
+                            </select>
+                            <p v-if="formErrors.jenis_pekerjaan" class="mt-1 text-xs text-red-500">{{ formErrors.jenis_pekerjaan }}</p>
+                        </div>
+                        <div>
+                            <label class="form-label">Indikator KPI</label>
+                            <select v-model="form.kpi_indicator_id" class="form-input" :disabled="isAssignedTaskEdit">
+                                <option value="">— Tanpa indikator KPI —</option>
+                                <option v-for="opt in indicatorOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+                            </select>
+                            <p class="mt-1 text-[11px] text-slate-400">Hubungkan ke indikator KPI divisi Anda.</p>
+                        </div>
+                    </div>
+
+                    <!-- Status & Waktu -->
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                        <div>
+                            <label class="form-label">Status</label>
+                            <select v-model="form.status" class="form-input">
+                                <option value="">Pilih status...</option>
+                                <option v-for="opt in statusOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+                            </select>
+                            <p v-if="formErrors.status" class="mt-1 text-xs text-red-500">{{ formErrors.status }}</p>
+                        </div>
+                        <div>
+                            <label class="form-label">Waktu Mulai</label>
+                            <input v-model="form.waktu_mulai" type="time" class="form-input" />
+                        </div>
+                        <div>
+                            <label class="form-label">Waktu Selesai</label>
+                            <input v-model="form.waktu_selesai" type="time" class="form-input" />
+                            <p v-if="formErrors.waktu_selesai" class="mt-1 text-xs text-red-500">{{ formErrors.waktu_selesai }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Indikator Masalah -->
+                    <div class="border-t pt-4">
+                        <label class="form-label mb-2 block">Indikator Masalah</label>
+                        <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                            <label
+                                v-for="flag in [
+                                    { key: 'ada_delay', label: 'Ada Delay' },
+                                    { key: 'ada_error', label: 'Ada Error' },
+                                    { key: 'ada_komplain', label: 'Ada Komplain' },
+                                ]"
+                                :key="flag.key"
+                                class="flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors"
+                                :class="form[flag.key]
+                                    ? 'border-red-300 bg-red-50 text-red-700'
+                                    : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'"
+                            >
+                                <input type="checkbox" v-model="form[flag.key]" class="h-4 w-4 rounded border-slate-300" />
+                                {{ flag.label }}
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Deskripsi -->
+                    <div>
                         <label class="form-label">Deskripsi</label>
                         <textarea
                             v-model="form.deskripsi"
                             class="form-textarea"
                             placeholder="Keterangan tambahan..."
-                            rows="4"
+                            rows="3"
                         />
                     </div>
 
-                    <div class="md:col-span-2 border-t pt-6">
-                        <label class="form-label">Upload Evidence</label>
+                    <!-- Upload Evidence -->
+                    <div>
+                        <label class="form-label mb-2 block">Upload Evidence</label>
                         <label
-                            class="group flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/80 px-6 py-6 transition hover:border-blue-300 hover:bg-blue-50/50"
+                            class="group flex cursor-pointer items-center gap-4 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/80 px-4 py-4 transition hover:border-blue-300 hover:bg-blue-50/50"
                             :class="isAssignedTaskEdit ? 'opacity-50 pointer-events-none' : ''"
                         >
-                            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm transition group-hover:bg-blue-50">
-                                <svg class="h-5 w-5 text-slate-400 transition group-hover:text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm transition group-hover:bg-blue-50">
+                                <svg class="h-4 w-4 text-slate-400 transition group-hover:text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                                     <polyline points="17 8 12 3 7 8" />
                                     <line x1="12" y1="3" x2="12" y2="15" />
                                 </svg>
                             </div>
-                            <div class="text-center">
-                                <p class="text-sm font-medium text-slate-700">
+                            <div class="min-w-0">
+                                <p class="truncate text-sm font-medium text-slate-700">
                                     {{ evidenceFileName || 'Klik untuk upload evidence' }}
                                 </p>
-                                <p class="mt-0.5 text-xs text-slate-400">PDF, PNG, JPG, DOC, XLSX — max 10 MB</p>
+                                <p class="mt-0.5 text-xs text-slate-400">PDF, PNG, JPG, DOC, XLSX — maks 10 MB</p>
                             </div>
                             <input
                                 type="file"
@@ -651,9 +649,10 @@ const statusBadgeMap = {
                 </div>
             </div>
 
-            <div class="mt-6 flex justify-end gap-3">
-                <button class="btn-secondary" :disabled="formLoading" @click="cancelForm">Batal</button>
-                <button class="btn-primary" :disabled="formLoading" @click="submitForm">
+            <!-- Footer buttons -->
+            <div class="mt-5 flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end sm:gap-3">
+                <button class="btn-secondary w-full sm:w-auto" :disabled="formLoading" @click="cancelForm">Batal</button>
+                <button class="btn-primary w-full sm:w-auto" :disabled="formLoading" @click="submitForm">
                     <svg v-if="formLoading" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48 2.83-2.83" />
                     </svg>
