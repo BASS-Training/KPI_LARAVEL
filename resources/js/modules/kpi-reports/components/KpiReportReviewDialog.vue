@@ -158,7 +158,7 @@ function handleSubmit() {
                 <div class="mt-3 border-t border-slate-200 pt-3">
                     <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Komponen KPI</p>
                     <p class="mt-1 text-sm font-semibold text-slate-900 leading-snug">
-                        {{ report.kpi_component?.objectives || '-' }}
+                        {{ report.kpi_indicator?.name || '-' }}
                     </p>
                 </div>
 

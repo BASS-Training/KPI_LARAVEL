@@ -16,11 +16,11 @@ const props = defineProps({
         type: Object,
         default: null,
     },
-    componentOptions: {
+    indicatorOptions: {
         type: Array,
         default: () => [],
     },
-    components: {
+    indicators: {
         type: Array,
         default: () => [],
     },
@@ -35,7 +35,7 @@ const props = defineProps({
 const emit = defineEmits(['update:open', 'submit']);
 
 const form = reactive({
-    kpi_component_id: '',
+    kpi_indicator_id: '',
     period_type: 'monthly',
     tanggal: new Date().toISOString().slice(0, 10),
     period_label: '',
@@ -46,18 +46,18 @@ const form = reactive({
 });
 
 const { errors, touched, touchField, validateField, validateForm, resetValidation } = useFormValidation({
-    kpi_component_id: (value) => (!value ? 'Komponen KPI wajib dipilih.' : ''),
+    kpi_indicator_id: (value) => (!value ? 'Indikator KPI wajib dipilih.' : ''),
     tanggal: (value) => (!value ? 'Tanggal wajib diisi.' : ''),
     nilai_aktual: (value) => (value === '' ? 'Nilai aktual wajib diisi.' : ''),
 });
 
-const selectedComponent = computed(() =>
-    props.components.find((component) => String(component.id) === String(form.kpi_component_id))
+const selectedIndicator = computed(() =>
+    props.indicators.find((indicator) => String(indicator.id) === String(form.kpi_indicator_id))
 );
 
 const estimatedPercentage = computed(() => {
     const actual = Number(form.nilai_aktual);
-    const target = Number(form.nilai_target || selectedComponent.value?.target || 0);
+    const target = Number(form.nilai_target || selectedIndicator.value?.default_target_value || 0);
 
     if (!Number.isFinite(actual)) {
         return 0;
@@ -78,7 +78,7 @@ watch(
         }
 
         Object.assign(form, {
-            kpi_component_id: props.report ? String(props.report.kpi_component_id) : '',
+            kpi_indicator_id: props.report ? String(props.report.kpi_indicator_id) : '',
             period_type: props.report?.period_type ?? 'monthly',
             tanggal: props.report?.tanggal ?? new Date().toISOString().slice(0, 10),
             period_label: props.report?.period_label ?? '',
@@ -105,10 +105,10 @@ watch(
 );
 
 watch(
-    () => form.kpi_component_id,
+    () => form.kpi_indicator_id,
     () => {
-        if (!form.nilai_target && selectedComponent.value?.target != null) {
-            form.nilai_target = selectedComponent.value.target;
+        if (!form.nilai_target && selectedIndicator.value?.default_target_value != null) {
+            form.nilai_target = selectedIndicator.value.default_target_value;
         }
     }
 );
@@ -117,6 +117,7 @@ function onBlur(field) {
     touchField(field);
     validateField(field, form[field], form);
 }
+
 
 function onFileChange(event) {
     form.evidence = event.target.files?.[0] ?? null;
@@ -136,7 +137,7 @@ function handleSubmit(status = 'draft') {
     emit('submit', {
         id: props.report?.id,
         payload: {
-            kpi_component_id: Number(form.kpi_component_id),
+            kpi_indicator_id: Number(form.kpi_indicator_id),
             period_type: form.period_type,
             tanggal: form.tanggal,
             period_label: form.period_label,
@@ -167,14 +168,14 @@ function handleSubmit(status = 'draft') {
                 </div>
                 <div class="grid gap-4 md:grid-cols-2">
                     <div class="md:col-span-2">
-                        <label class="form-label">Komponen KPI</label>
+                        <label class="form-label">Indikator KPI</label>
                         <Select
-                            v-model="form.kpi_component_id"
-                            :options="componentOptions"
-                            placeholder="Pilih komponen KPI"
-                            @blur="onBlur('kpi_component_id')"
+                            v-model="form.kpi_indicator_id"
+                            :options="indicatorOptions"
+                            placeholder="Pilih indikator KPI"
+                            @blur="onBlur('kpi_indicator_id')"
                         />
-                        <p v-if="touched.kpi_component_id && errors.kpi_component_id" class="mt-1 text-xs text-rose-600">{{ errors.kpi_component_id }}</p>
+                        <p v-if="touched.kpi_indicator_id && errors.kpi_indicator_id" class="mt-1 text-xs text-rose-600">{{ errors.kpi_indicator_id }}</p>
                     </div>
 
                     <div>

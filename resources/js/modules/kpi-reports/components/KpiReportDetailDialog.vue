@@ -34,7 +34,7 @@ defineEmits(['update:open', 'evidence']);
                             {{ scoreLabel(report.score_label) }}
                         </span>
                     </div>
-                    <h3 class="mt-3 text-xl font-semibold text-slate-950">{{ report.kpi_component?.objectives || '-' }}</h3>
+                    <h3 class="mt-3 text-xl font-semibold text-slate-950">{{ report.kpi_indicator?.name || '-' }}</h3>
                     <p class="mt-2 text-sm leading-6 text-slate-500">
                         {{ report.user?.jabatan || 'Pegawai' }} | {{ report.period_label || '-' }} | {{ report.period_type || '-' }}
                     </p>

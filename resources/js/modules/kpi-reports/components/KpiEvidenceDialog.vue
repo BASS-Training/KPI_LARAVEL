@@ -36,14 +36,14 @@ const isPdfEvidence = computed(() => evidenceExtension.value === 'pdf');
         <div class="p-6 space-y-4">
 
             <!-- Evidence context -->
-            <div v-if="report?.kpi_component?.objectives" class="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-800/40">
+            <div v-if="report?.kpi_indicator?.name" class="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-800/40">
                 <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
                     <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                         <polyline points="14 2 14 8 20 8" />
                     </svg>
                 </div>
-                <p class="text-sm font-medium text-slate-700 dark:text-slate-300">{{ report.kpi_component.objectives }}</p>
+                <p class="text-sm font-medium text-slate-700 dark:text-slate-300">{{ report.kpi_indicator.name }}</p>
             </div>
 
             <!-- Evidence viewer -->
@@ -51,7 +51,7 @@ const isPdfEvidence = computed(() => evidenceExtension.value === 'pdf');
                 <img
                     v-if="isImageEvidence && evidenceUrl"
                     :src="evidenceUrl"
-                    :alt="report?.kpi_component?.objectives || 'Evidence'"
+                    :alt="report?.kpi_indicator?.name || 'Evidence'"
                     class="max-h-[65vh] w-full object-contain bg-slate-50"
                 >
                 <iframe

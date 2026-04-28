@@ -17,7 +17,7 @@ const defaultFilters = () => ({
 export const useKpiReportStore = defineStore('kpiReport', () => {
     const reports = ref([]);
     const employees = ref([]);
-    const components = ref([]);
+    const indicators = ref([]);
     const isSaving = ref(false);
     const isDeleting = ref(false);
     const isReviewing = ref(false);
@@ -32,9 +32,11 @@ export const useKpiReportStore = defineStore('kpiReport', () => {
         label: employee.nama,
     })));
 
-    const componentOptions = computed(() => components.value.map((component) => ({
-        value: String(component.id),
-        label: component.objectives,
+    const indicatorOptions = computed(() => indicators.value.map((indicator) => ({
+        value: String(indicator.id),
+        label: indicator.position
+            ? `${indicator.name} (${indicator.position.nama})`
+            : indicator.name,
     })));
 
     async function fetchReports(overrides = {}) {
@@ -51,15 +53,15 @@ export const useKpiReportStore = defineStore('kpiReport', () => {
     }
 
     async function bootstrapReferenceData(loadEmployees = false) {
-        const requests = [kpiReportService.listComponents()];
+        const requests = [kpiReportService.listIndicators()];
 
         if (loadEmployees) {
             requests.push(kpiReportService.listEmployees());
         }
 
-        const [componentData, employeeData] = await Promise.all(requests);
+        const [indicatorData, employeeData] = await Promise.all(requests);
 
-        components.value = componentData ?? [];
+        indicators.value = indicatorData ?? [];
 
         if (loadEmployees) {
             employees.value = employeeData ?? [];
@@ -179,11 +181,11 @@ export const useKpiReportStore = defineStore('kpiReport', () => {
     return {
         reports,
         employees,
-        components,
+        indicators,
         filters,
         pagination: pagination.state,
         employeeOptions,
-        componentOptions,
+        indicatorOptions,
         isLoading: listHandler.isLoading,
         isSaving,
         isDeleting,

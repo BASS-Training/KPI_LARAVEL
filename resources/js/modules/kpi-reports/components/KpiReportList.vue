@@ -42,7 +42,7 @@ defineEmits(['edit', 'delete', 'detail', 'evidence', 'approve', 'reject', 'submi
 
                     <div class="mt-5 flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                         <div class="min-w-0 flex-1">
-                            <h3 class="text-lg font-semibold text-slate-950">{{ report.kpi_component?.objectives || '-' }}</h3>
+                            <h3 class="text-lg font-semibold text-slate-950">{{ report.kpi_indicator?.name || '-' }}</h3>
                             <div class="mt-3 flex flex-wrap gap-2 text-sm text-slate-500">
                                 <span class="rounded-full bg-slate-100 px-3 py-1">{{ report.period_label || '-' }}</span>
                                 <span class="rounded-full bg-slate-100 px-3 py-1">{{ formatDate(report.tanggal) }}</span>

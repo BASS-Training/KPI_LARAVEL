@@ -149,7 +149,7 @@ async function handleFormSubmit({ id, payload, evidence }) {
 async function handleQuickSubmit(report) {
     try {
         await store.updateReport(report.id, {
-            kpi_component_id: report.kpi_component_id,
+            kpi_indicator_id: report.kpi_indicator_id,
             period_type: report.period_type,
             tanggal: report.tanggal,
             period_label: report.period_label,
@@ -281,8 +281,8 @@ function handlePageChange(page) {
         <KpiReportFormDialog
             v-model:open="dialog.formOpen"
             :report="dialog.formReport"
-            :components="store.components"
-            :component-options="store.componentOptions"
+            :indicators="store.indicators"
+            :indicator-options="store.indicatorOptions"
             :is-saving="store.isSaving"
             :is-uploading-evidence="store.isUploadingEvidence"
             :error-message="formError"
@@ -298,7 +298,7 @@ function handlePageChange(page) {
         <KpiReportDeleteDialog
             v-model:open="dialog.deleteOpen"
             :is-deleting="store.isDeleting"
-            :report-title="dialog.deleteReport?.kpi_component?.objectives || 'laporan ini'"
+            :report-title="dialog.deleteReport?.kpi_indicator?.name || 'laporan ini'"
             @confirm="handleDeleteConfirm"
         />
 

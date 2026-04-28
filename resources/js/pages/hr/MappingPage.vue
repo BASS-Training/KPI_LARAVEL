@@ -32,17 +32,17 @@ const years = computed(() => {
     return [y - 1, y, y + 1];
 });
 
-// ── KPI components list (for dropdown) ───────────────────────────────────────
-const kpiComponents    = ref([]);
-const loadingComponents = ref(false);
+// ── KPI indicators list (for dropdown) ───────────────────────────────────────
+const kpiIndicators    = ref([]);
+const loadingIndicators = ref(false);
 
-async function loadKpiComponents() {
-    loadingComponents.value = true;
+async function loadKpiIndicators() {
+    loadingIndicators.value = true;
     try {
-        const { data: resp } = await api.get('/kpi-components', { params: { per_page: 200 } });
-        kpiComponents.value = resp.data?.items ?? [];
+        const { data: resp } = await api.get('/kpi-indicators', { params: { per_page: 200 } });
+        kpiIndicators.value = resp.data?.items ?? [];
     } finally {
-        loadingComponents.value = false;
+        loadingIndicators.value = false;
     }
 }
 
@@ -57,7 +57,7 @@ function loadTasks() {
 
 onMounted(() => {
     loadTasks();
-    loadKpiComponents();
+    loadKpiIndicators();
 });
 
 watch([filterBulan, filterTahun], loadTasks);
@@ -67,7 +67,7 @@ const { refresh: autoRefresh, lastUpdated, isRefreshing } = useAutoRefresh(loadT
 // ── Derived/filtered list ─────────────────────────────────────────────────────
 const displayedTasks = computed(() => {
     let list = taskStore.tasks;
-    if (filterUnmapped.value) list = list.filter(t => !t.kpi_component);
+    if (filterUnmapped.value) list = list.filter(t => !t.kpi_indicator);
     if (filterSearch.value.trim()) {
         const q = filterSearch.value.toLowerCase();
         list = list.filter(t =>
@@ -78,37 +78,37 @@ const displayedTasks = computed(() => {
     return list;
 });
 
-const unmappedCount = computed(() => taskStore.tasks.filter(t => !t.kpi_component).length);
-const mappedCount   = computed(() => taskStore.tasks.filter(t =>  t.kpi_component).length);
+const unmappedCount = computed(() => taskStore.tasks.filter(t => !t.kpi_indicator).length);
+const mappedCount   = computed(() => taskStore.tasks.filter(t =>  t.kpi_indicator).length);
 
 // ── Mapping dialog ────────────────────────────────────────────────────────────
 const mappingDialog = reactive({
-    open:           false,
-    task:           null,
-    kpiComponentId: '',
-    manualScore:    '',
-    loading:        false,
-    error:          '',
+    open:            false,
+    task:            null,
+    kpiIndicatorId:  '',
+    manualScore:     '',
+    loading:         false,
+    error:           '',
 });
 
 function openMapping(task) {
     mappingDialog.task           = task;
-    mappingDialog.kpiComponentId = task.kpi_component_id ? String(task.kpi_component_id) : '';
+    mappingDialog.kpiIndicatorId = task.kpi_indicator_id ? String(task.kpi_indicator_id) : '';
     mappingDialog.manualScore    = task.manual_score ?? '';
     mappingDialog.error          = '';
     mappingDialog.open           = true;
 }
 
 async function submitMapping() {
-    if (!mappingDialog.kpiComponentId) {
-        mappingDialog.error = 'Pilih komponen KPI terlebih dahulu.';
+    if (!mappingDialog.kpiIndicatorId) {
+        mappingDialog.error = 'Pilih indikator KPI terlebih dahulu.';
         return;
     }
     mappingDialog.loading = true;
     mappingDialog.error   = '';
     try {
         const updated = await taskStore.mapKpi(mappingDialog.task.id, {
-            kpi_component_id: Number(mappingDialog.kpiComponentId),
+            kpi_indicator_id: Number(mappingDialog.kpiIndicatorId),
             manual_score: mappingDialog.manualScore !== '' ? Number(mappingDialog.manualScore) : null,
         });
 
@@ -127,17 +127,17 @@ async function submitMapping() {
 
 function removeMapping(task) {
     mappingDialog.task           = task;
-    mappingDialog.kpiComponentId = '';
+    mappingDialog.kpiIndicatorId = '';
     mappingDialog.manualScore    = '';
     mappingDialog.error          = '';
     mappingDialog.open           = true;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-const componentOptions = computed(() =>
-    kpiComponents.value.map(c => ({
+const indicatorOptions = computed(() =>
+    kpiIndicators.value.map(c => ({
         value: String(c.id),
-        label: `${c.objectives} (${c.jabatan})`,
+        label: c.position ? `${c.name} (${c.position.nama})` : c.name,
     }))
 );
 
@@ -254,18 +254,18 @@ function statusClass(status) {
                             </div>
 
                             <!-- Mapped KPI chip -->
-                            <div v-if="task.kpi_component" class="mt-1.5 flex items-center gap-1.5">
+                            <div v-if="task.kpi_indicator" class="mt-1.5 flex items-center gap-1.5">
                                 <svg class="h-3.5 w-3.5 shrink-0 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                                     <path d="M20 6 9 17l-5-5"/>
                                 </svg>
-                                <span class="text-xs font-medium text-green-700">{{ task.kpi_component.objectives }}</span>
-                                <span class="text-xs text-slate-400">({{ task.kpi_component.jabatan }})</span>
+                                <span class="text-xs font-medium text-green-700">{{ task.kpi_indicator.name }}</span>
+                                <span v-if="task.kpi_indicator.position" class="text-xs text-slate-400">({{ task.kpi_indicator.position.nama }})</span>
                             </div>
                             <div v-else class="mt-1.5 flex items-center gap-1.5 text-xs text-amber-600">
                                 <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <circle cx="12" cy="12" r="9"/><path d="M12 8v4m0 4h.01"/>
                                 </svg>
-                                Belum di-map ke komponen KPI
+                                Belum di-map ke indikator KPI
                             </div>
                         </div>
                     </div>
@@ -273,10 +273,10 @@ function statusClass(status) {
                     <!-- Action -->
                     <button
                         class="btn-primary shrink-0 !px-3 !py-1.5 text-xs"
-                        :class="task.kpi_component ? 'btn-secondary' : 'btn-primary'"
+                        :class="task.kpi_indicator ? 'btn-secondary' : 'btn-primary'"
                         @click="openMapping(task)"
                     >
-                        {{ task.kpi_component ? 'Ubah Mapping' : 'Map KPI' }}
+                        {{ task.kpi_indicator ? 'Ubah Mapping' : 'Map KPI' }}
                     </button>
                 </div>
             </div>
@@ -292,8 +292,8 @@ function statusClass(status) {
                         {{ mappingDialog.task.user?.nama || '-' }}
                         · {{ formatDate(mappingDialog.task.tanggal) }}
                     </p>
-                    <div v-if="mappingDialog.task.kpi_component" class="mt-2 rounded-lg bg-green-50 px-3 py-1.5 text-xs text-green-700">
-                        Saat ini: <strong>{{ mappingDialog.task.kpi_component.objectives }}</strong>
+                    <div v-if="mappingDialog.task.kpi_indicator" class="mt-2 rounded-lg bg-green-50 px-3 py-1.5 text-xs text-green-700">
+                        Saat ini: <strong>{{ mappingDialog.task.kpi_indicator.name }}</strong>
                     </div>
                 </div>
 
@@ -301,12 +301,12 @@ function statusClass(status) {
 
                 <div class="mt-4 space-y-4">
                     <div>
-                        <label class="form-label">Komponen KPI <span class="text-red-500">*</span></label>
-                        <select v-model="mappingDialog.kpiComponentId" class="form-input">
-                            <option value="">— Pilih Komponen KPI —</option>
-                            <option v-for="opt in componentOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+                        <label class="form-label">Indikator KPI <span class="text-red-500">*</span></label>
+                        <select v-model="mappingDialog.kpiIndicatorId" class="form-input">
+                            <option value="">— Pilih Indikator KPI —</option>
+                            <option v-for="opt in indicatorOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
                         </select>
-                        <p v-if="loadingComponents" class="mt-1 text-xs text-slate-400">Memuat komponen...</p>
+                        <p v-if="loadingIndicators" class="mt-1 text-xs text-slate-400">Memuat indikator...</p>
                     </div>
                     <div>
                         <label class="form-label">

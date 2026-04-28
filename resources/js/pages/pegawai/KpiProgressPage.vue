@@ -271,7 +271,7 @@ function barColorClass(pct) {
                         <div class="min-w-0 flex-1">
                             <div class="flex flex-wrap items-center gap-2">
                                 <span class="text-sm font-semibold text-slate-900">
-                                    {{ r.kpi_component?.objectives ?? `KPI #${r.kpi_component_id}` }}
+                                    {{ r.kpi_indicator?.name ?? `KPI #${r.kpi_indicator_id}` }}
                                 </span>
                                 <ScoreBadge :score-label="r.score_label" :show-pct="false" />
                                 <span
@@ -284,7 +284,7 @@ function barColorClass(pct) {
 
                             <div class="mt-2 max-w-xs">
                                 <div class="mb-1 flex justify-between text-[10px] text-slate-500">
-                                    <span>{{ r.nilai_aktual }} / {{ r.nilai_target ?? r.kpi_component?.target ?? '?' }}</span>
+                                    <span>{{ r.nilai_aktual }} / {{ r.nilai_target ?? r.kpi_indicator?.default_target_value ?? '?' }}</span>
                                     <span>{{ formatPct(r.persentase) }}</span>
                                 </div>
                                 <div class="h-1.5 rounded-full bg-slate-200">
