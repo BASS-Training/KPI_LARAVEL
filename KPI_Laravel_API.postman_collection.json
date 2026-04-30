@@ -1,0 +1,1255 @@
+{
+  "info": {
+    "_postman_id": "kpi-laravel-api-collection",
+    "name": "KPI Laravel API",
+    "description": "Koleksi lengkap API untuk sistem KPI Laravel.\n\nSetup:\n1. Set variable `base_url` ke URL server (default: http://localhost:8000/api)\n2. Jalankan request **Login** — token otomatis tersimpan ke variable `token`\n3. Semua request lain sudah pakai Bearer token otomatis",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{token}}", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "base_url", "value": "https://kpi.basstrainingacademy.com/api", "type": "string" },
+    { "key": "token", "value": "", "type": "string" }
+  ],
+  "item": [
+
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) {",
+                  "    pm.collectionVariables.set('token', res.token);",
+                  "    console.log('Token saved:', res.token.substring(0,20) + '...');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nip\": \"EMP001\",\n  \"password\": \"password\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Me (profil user login)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/auth/me", "host": ["{{base_url}}"], "path": ["auth", "me"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/auth/logout", "host": ["{{base_url}}"], "path": ["auth", "logout"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Employees (Pegawai)",
+      "item": [
+        {
+          "name": "List Employees",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/employees?department_id=&search=",
+              "host": ["{{base_url}}"],
+              "path": ["employees"],
+              "query": [
+                { "key": "department_id", "value": "", "description": "Filter by department" },
+                { "key": "search", "value": "", "description": "Cari nama/NIP" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Employee",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nip\": \"EMP099\",\n  \"nama\": \"Budi Santoso\",\n  \"jabatan\": \"Staff IT\",\n  \"departemen\": \"Information Technology\",\n  \"status_karyawan\": \"Tetap\",\n  \"tanggal_masuk\": \"2024-01-01\",\n  \"email\": \"budi@example.com\",\n  \"no_hp\": \"08123456789\",\n  \"role\": \"pegawai\",\n  \"department_id\": 1,\n  \"position_id\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/employees", "host": ["{{base_url}}"], "path": ["employees"] }
+          }
+        },
+        {
+          "name": "Update Employee",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nip\": \"EMP099\",\n  \"nama\": \"Budi Santoso\",\n  \"jabatan\": \"Senior Staff IT\",\n  \"departemen\": \"Information Technology\",\n  \"status_karyawan\": \"Tetap\",\n  \"tanggal_masuk\": \"2024-01-01\",\n  \"email\": \"budi@example.com\",\n  \"role\": \"pegawai\",\n  \"department_id\": 1,\n  \"position_id\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/employees/:id", "host": ["{{base_url}}"], "path": ["employees", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Delete Employee",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/employees/:id", "host": ["{{base_url}}"], "path": ["employees", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Tasks",
+      "item": [
+        {
+          "name": "List Tasks (HR - semua)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/tasks?user_id=&status=&from=&to=",
+              "host": ["{{base_url}}"],
+              "path": ["tasks"],
+              "query": [
+                { "key": "user_id", "value": "", "description": "Filter by pegawai" },
+                { "key": "status", "value": "", "description": "Pending|Dalam Proses|Selesai" },
+                { "key": "from", "value": "", "description": "Tanggal mulai (YYYY-MM-DD)" },
+                { "key": "to", "value": "", "description": "Tanggal selesai (YYYY-MM-DD)" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "My Tasks (Pegawai)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/my-tasks", "host": ["{{base_url}}"], "path": ["my-tasks"] }
+          }
+        },
+        {
+          "name": "Create Task - Input Pekerjaan (Pegawai)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "judul", "value": "Pembuatan Laporan Bulanan", "type": "text" },
+                { "key": "jenis_pekerjaan", "value": "Laporan", "type": "text" },
+                { "key": "tanggal", "value": "2026-04-30", "type": "text", "description": "Tanggal mulai" },
+                { "key": "end_date", "value": "2026-04-30", "type": "text", "description": "Tanggal selesai (opsional)" },
+                { "key": "status", "value": "Selesai", "type": "text", "description": "Pending | Dalam Proses | Selesai" },
+                { "key": "waktu_mulai", "value": "08:00", "type": "text" },
+                { "key": "waktu_selesai", "value": "17:00", "type": "text" },
+                { "key": "ada_delay", "value": "false", "type": "text" },
+                { "key": "ada_error", "value": "false", "type": "text" },
+                { "key": "ada_komplain", "value": "false", "type": "text" },
+                { "key": "deskripsi", "value": "Laporan kinerja bulan April 2026", "type": "text" },
+                { "key": "kpi_indicator_id", "value": "1", "type": "text", "description": "Opsional" },
+                { "key": "file_evidence", "type": "file", "src": [], "description": "Opsional, max 10MB (pdf/png/jpg/doc/xlsx)" }
+              ]
+            },
+            "url": { "raw": "{{base_url}}/tasks", "host": ["{{base_url}}"], "path": ["tasks"] }
+          }
+        },
+        {
+          "name": "Create Task - Penugasan (HR ke Pegawai)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"judul\": \"Audit Dokumen Q2\",\n  \"description\": \"Lakukan audit dokumen untuk kuartal 2\",\n  \"assigned_to\": 5,\n  \"start_date\": \"2026-05-01\",\n  \"end_date\": \"2026-05-15\",\n  \"weight\": 20,\n  \"target_value\": 100,\n  \"kpi_indicator_id\": 3\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/tasks", "host": ["{{base_url}}"], "path": ["tasks"] }
+          }
+        },
+        {
+          "name": "Update Task - Input Pekerjaan (Pegawai)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "_method", "value": "PUT", "type": "text" },
+                { "key": "judul", "value": "Pembuatan Laporan Bulanan - Update", "type": "text" },
+                { "key": "jenis_pekerjaan", "value": "Laporan", "type": "text" },
+                { "key": "tanggal", "value": "2026-04-30", "type": "text" },
+                { "key": "end_date", "value": "2026-04-30", "type": "text" },
+                { "key": "status", "value": "Selesai", "type": "text" },
+                { "key": "waktu_mulai", "value": "08:00", "type": "text" },
+                { "key": "waktu_selesai", "value": "16:00", "type": "text" },
+                { "key": "deskripsi", "value": "Diperbarui", "type": "text" },
+                { "key": "file_evidence", "type": "file", "src": [], "description": "Opsional — ganti file evidence" }
+              ]
+            },
+            "url": { "raw": "{{base_url}}/tasks/:id", "host": ["{{base_url}}"], "path": ["tasks", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Update Status Task (Pegawai)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Selesai\",\n  \"actual_value\": 95\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/tasks/:id/update-status", "host": ["{{base_url}}"], "path": ["tasks", ":id", "update-status"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Mapping Task ke KPI (HR)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kpi_indicator_id\": 2,\n  \"manual_score\": null\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/tasks/:id/mapping", "host": ["{{base_url}}"], "path": ["tasks", ":id", "mapping"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Delete Task",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/tasks/:id", "host": ["{{base_url}}"], "path": ["tasks", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "KPI Reports (Laporan KPI)",
+      "item": [
+        {
+          "name": "List KPI Reports",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/kpi-reports?user_id=&status=&period_type=&from=&to=",
+              "host": ["{{base_url}}"],
+              "path": ["kpi-reports"],
+              "query": [
+                { "key": "user_id", "value": "" },
+                { "key": "status", "value": "", "description": "draft|submitted|approved|rejected" },
+                { "key": "period_type", "value": "", "description": "daily|weekly|monthly" },
+                { "key": "from", "value": "" },
+                { "key": "to", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create KPI Report",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kpi_indicator_id\": 1,\n  \"period_type\": \"monthly\",\n  \"tanggal\": \"2026-04-30\",\n  \"period_label\": \"April 2026\",\n  \"nilai_target\": 100,\n  \"nilai_aktual\": 95,\n  \"catatan\": \"Target hampir tercapai\",\n  \"status\": \"draft\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/kpi-reports", "host": ["{{base_url}}"], "path": ["kpi-reports"] }
+          }
+        },
+        {
+          "name": "Update KPI Report",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kpi_indicator_id\": 1,\n  \"period_type\": \"monthly\",\n  \"tanggal\": \"2026-04-30\",\n  \"period_label\": \"April 2026\",\n  \"nilai_target\": 100,\n  \"nilai_aktual\": 98,\n  \"catatan\": \"Diperbarui\",\n  \"status\": \"submitted\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/kpi-reports/:id", "host": ["{{base_url}}"], "path": ["kpi-reports", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Upload Evidence KPI Report",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file_evidence", "type": "file", "src": [], "description": "PDF/PNG/JPG/DOC/XLSX max 10MB" }
+              ]
+            },
+            "url": { "raw": "{{base_url}}/kpi-reports/:id/evidence", "host": ["{{base_url}}"], "path": ["kpi-reports", ":id", "evidence"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Review KPI Report (HR/Direktur)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\",\n  \"review_note\": \"Laporan sudah sesuai target\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/kpi-reports/:id/review", "host": ["{{base_url}}"], "path": ["kpi-reports", ":id", "review"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Delete KPI Report",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/kpi-reports/:id", "host": ["{{base_url}}"], "path": ["kpi-reports", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "KPI Indicators",
+      "item": [
+        {
+          "name": "List KPI Indicators",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/kpi-indicators?department_id=&position_id=",
+              "host": ["{{base_url}}"],
+              "path": ["kpi-indicators"],
+              "query": [
+                { "key": "department_id", "value": "", "description": "Filter by departemen" },
+                { "key": "position_id", "value": "", "description": "Filter by jabatan" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Meta (form options)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/kpi-indicators/meta", "host": ["{{base_url}}"], "path": ["kpi-indicators", "meta"] }
+          }
+        },
+        {
+          "name": "Show KPI Indicator",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/kpi-indicators/:id", "host": ["{{base_url}}"], "path": ["kpi-indicators", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Create KPI Indicator (HR)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Invoice Accuracy Rate\",\n  \"weight\": 25,\n  \"default_target_value\": 100,\n  \"description\": \"Tingkat akurasi penerbitan invoice\",\n  \"department_id\": 1,\n  \"position_id\": null,\n  \"formula_type\": \"percentage\",\n  \"thresholds\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/kpi-indicators", "host": ["{{base_url}}"], "path": ["kpi-indicators"] }
+          }
+        },
+        {
+          "name": "Update KPI Indicator (HR)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Invoice Accuracy Rate\",\n  \"weight\": 30,\n  \"default_target_value\": 100,\n  \"description\": \"Diperbarui\",\n  \"department_id\": 1,\n  \"position_id\": null,\n  \"formula_type\": \"percentage\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/kpi-indicators/:id", "host": ["{{base_url}}"], "path": ["kpi-indicators", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Delete KPI Indicator (HR)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/kpi-indicators/:id", "host": ["{{base_url}}"], "path": ["kpi-indicators", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "KPI (Dashboard & Ranking)",
+      "item": [
+        {
+          "name": "KPI Saya (Pegawai)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/kpi/me", "host": ["{{base_url}}"], "path": ["kpi", "me"] }
+          }
+        },
+        {
+          "name": "Ranking KPI",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/kpi/ranking?department_id=&period=",
+              "host": ["{{base_url}}"],
+              "path": ["kpi", "ranking"],
+              "query": [
+                { "key": "department_id", "value": "" },
+                { "key": "period", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "KPI Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/kpi/dashboard", "host": ["{{base_url}}"], "path": ["kpi", "dashboard"] }
+          }
+        },
+        {
+          "name": "KPI User Detail (HR/Direktur)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/kpi/user/:id", "host": ["{{base_url}}"], "path": ["kpi", "user", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "KPI Show by User (HR/Direktur)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/kpi/:user_id", "host": ["{{base_url}}"], "path": ["kpi", ":user_id"], "variable": [{ "key": "user_id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "KPI Input Manual (HR/Direktur)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": 5,\n  \"kpi_indicator_id\": 1,\n  \"nilai_aktual\": 95,\n  \"period_label\": \"April 2026\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/kpi/input", "host": ["{{base_url}}"], "path": ["kpi", "input"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Departments",
+      "item": [
+        {
+          "name": "List Departments",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/departments", "host": ["{{base_url}}"], "path": ["departments"] }
+          }
+        },
+        {
+          "name": "Create Department (HR)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama\": \"Information Technology\",\n  \"kode\": \"ITD\",\n  \"deskripsi\": \"Departemen teknologi informasi\",\n  \"is_active\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/departments", "host": ["{{base_url}}"], "path": ["departments"] }
+          }
+        },
+        {
+          "name": "Update Department (HR)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama\": \"Information Technology\",\n  \"kode\": \"ITD\",\n  \"deskripsi\": \"Diperbarui\",\n  \"is_active\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/departments/:id", "host": ["{{base_url}}"], "path": ["departments", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Delete Department (HR)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/departments/:id", "host": ["{{base_url}}"], "path": ["departments", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Positions (Jabatan)",
+      "item": [
+        {
+          "name": "List Positions",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/positions?department_id=",
+              "host": ["{{base_url}}"],
+              "path": ["positions"],
+              "query": [{ "key": "department_id", "value": "" }]
+            }
+          }
+        },
+        {
+          "name": "Create Position (HR)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama\": \"Software Engineer\",\n  \"kode\": \"SE-01\",\n  \"department_id\": 1,\n  \"level\": \"Junior\",\n  \"is_active\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/positions", "host": ["{{base_url}}"], "path": ["positions"] }
+          }
+        },
+        {
+          "name": "Update Position (HR)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama\": \"Software Engineer\",\n  \"kode\": \"SE-01\",\n  \"department_id\": 1,\n  \"level\": \"Senior\",\n  \"is_active\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/positions/:id", "host": ["{{base_url}}"], "path": ["positions", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Delete Position (HR)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/positions/:id", "host": ["{{base_url}}"], "path": ["positions", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "SLA",
+      "item": [
+        {
+          "name": "List SLA",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/sla", "host": ["{{base_url}}"], "path": ["sla"] }
+          }
+        },
+        {
+          "name": "Create SLA (HR)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_pekerjaan\": \"Pembuatan Invoice\",\n  \"jabatan\": \"Staff Keuangan\",\n  \"position_id\": 2,\n  \"durasi_jam\": 8,\n  \"keterangan\": \"SLA standar untuk pembuatan invoice\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/sla", "host": ["{{base_url}}"], "path": ["sla"] }
+          }
+        },
+        {
+          "name": "Update SLA (HR)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama_pekerjaan\": \"Pembuatan Invoice\",\n  \"jabatan\": \"Staff Keuangan\",\n  \"position_id\": 2,\n  \"durasi_jam\": 6,\n  \"keterangan\": \"Diperbarui\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/sla/:id", "host": ["{{base_url}}"], "path": ["sla", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Delete SLA (HR)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/sla/:id", "host": ["{{base_url}}"], "path": ["sla", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Analytics (HR/Direktur)",
+      "item": [
+        {
+          "name": "Trend KPI",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/analytics/trend?department_id=&from=&to=",
+              "host": ["{{base_url}}"],
+              "path": ["analytics", "trend"],
+              "query": [
+                { "key": "department_id", "value": "" },
+                { "key": "from", "value": "" },
+                { "key": "to", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Per Departemen",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/analytics/per-department", "host": ["{{base_url}}"], "path": ["analytics", "per-department"] }
+          }
+        },
+        {
+          "name": "Distribusi Skor",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/analytics/distribution", "host": ["{{base_url}}"], "path": ["analytics", "distribution"] }
+          }
+        },
+        {
+          "name": "Overview",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/analytics/overview", "host": ["{{base_url}}"], "path": ["analytics", "overview"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Export (HR/Direktur)",
+      "item": [
+        {
+          "name": "Export KPI PDF per User",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/export/kpi/:user_id/pdf", "host": ["{{base_url}}"], "path": ["export", "kpi", ":user_id", "pdf"], "variable": [{ "key": "user_id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Export KPI",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/export/kpi", "host": ["{{base_url}}"], "path": ["export", "kpi"] }
+          }
+        },
+        {
+          "name": "Export Ranking CSV",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/export/ranking/csv", "host": ["{{base_url}}"], "path": ["export", "ranking", "csv"] }
+          }
+        },
+        {
+          "name": "Export Reports CSV",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/export/reports/csv", "host": ["{{base_url}}"], "path": ["export", "reports", "csv"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "List Notifikasi",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/notifications", "host": ["{{base_url}}"], "path": ["notifications"] }
+          }
+        },
+        {
+          "name": "Tandai Terbaca",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/notifications/:id/read", "host": ["{{base_url}}"], "path": ["notifications", ":id", "read"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Tandai Semua Terbaca",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/notifications/read-all", "host": ["{{base_url}}"], "path": ["notifications", "read-all"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Settings & Logs",
+      "item": [
+        {
+          "name": "Get Settings",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/settings", "host": ["{{base_url}}"], "path": ["settings"] }
+          }
+        },
+        {
+          "name": "Update Settings (HR/Direktur)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_name\": \"PT Contoh Perusahaan\",\n  \"kpi_period\": \"monthly\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/settings", "host": ["{{base_url}}"], "path": ["settings"] }
+          }
+        },
+        {
+          "name": "Audit Logs (HR/Direktur)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/logs?from=&to=&user_id=",
+              "host": ["{{base_url}}"],
+              "path": ["logs"],
+              "query": [
+                { "key": "from", "value": "" },
+                { "key": "to", "value": "" },
+                { "key": "user_id", "value": "" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "V2 — Tenants (Super Admin)",
+      "item": [
+        {
+          "name": "My Tenants",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/my/tenants", "host": ["{{base_url}}"], "path": ["v2", "my", "tenants"] }
+          }
+        },
+        {
+          "name": "List Tenants",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/tenants", "host": ["{{base_url}}"], "path": ["v2", "tenants"] }
+          }
+        },
+        {
+          "name": "Show Tenant",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/tenants/:id", "host": ["{{base_url}}"], "path": ["v2", "tenants", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Create Tenant",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"PT Contoh Corp\",\n  \"slug\": \"pt-contoh-corp\",\n  \"domain\": \"contoh.com\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/v2/tenants", "host": ["{{base_url}}"], "path": ["v2", "tenants"] }
+          }
+        },
+        {
+          "name": "Update Tenant",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"PT Contoh Corp Updated\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/v2/tenants/:id", "host": ["{{base_url}}"], "path": ["v2", "tenants", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Activate Tenant",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/tenants/:id/activate", "host": ["{{base_url}}"], "path": ["v2", "tenants", ":id", "activate"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Deactivate Tenant",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/tenants/:id/deactivate", "host": ["{{base_url}}"], "path": ["v2", "tenants", ":id", "deactivate"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Users by Tenant",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/tenants/:id/users", "host": ["{{base_url}}"], "path": ["v2", "tenants", ":id", "users"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "V2 — User Management",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/users", "host": ["{{base_url}}"], "path": ["v2", "users"] }
+          }
+        },
+        {
+          "name": "List Roles",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/users/roles", "host": ["{{base_url}}"], "path": ["v2", "users", "roles"] }
+          }
+        },
+        {
+          "name": "Show User",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/users/:id", "host": ["{{base_url}}"], "path": ["v2", "users", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nip\": \"EMP010\",\n  \"nama\": \"Andi Wijaya\",\n  \"email\": \"andi@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"pegawai\",\n  \"department_id\": 1,\n  \"position_id\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/v2/users", "host": ["{{base_url}}"], "path": ["v2", "users"] }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama\": \"Andi Wijaya Updated\",\n  \"role\": \"hr_manager\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/v2/users/:id", "host": ["{{base_url}}"], "path": ["v2", "users", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/users/:id", "host": ["{{base_url}}"], "path": ["v2", "users", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Assign User ke Tenant",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": 1,\n  \"role\": \"pegawai\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/v2/users/:id/tenants", "host": ["{{base_url}}"], "path": ["v2", "users", ":id", "tenants"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Remove User dari Tenant",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/users/:id/tenants/:tenant_id", "host": ["{{base_url}}"], "path": ["v2", "users", ":id", "tenants", ":tenant_id"], "variable": [{ "key": "id", "value": "1" }, { "key": "tenant_id", "value": "1" }] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "V2 — KPI Templates",
+      "item": [
+        {
+          "name": "List Templates",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/kpi/templates", "host": ["{{base_url}}"], "path": ["v2", "kpi", "templates"] }
+          }
+        },
+        {
+          "name": "Show Template",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/kpi/templates/:id", "host": ["{{base_url}}"], "path": ["v2", "kpi", "templates", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Create Template (HR)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Template KPI Staff IT\",\n  \"description\": \"Template untuk posisi staff IT\",\n  \"period_type\": \"monthly\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/v2/kpi/templates", "host": ["{{base_url}}"], "path": ["v2", "kpi", "templates"] }
+          }
+        },
+        {
+          "name": "Update Template (HR)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Template KPI Staff IT - Diperbarui\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/v2/kpi/templates/:id", "host": ["{{base_url}}"], "path": ["v2", "kpi", "templates", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Delete Template (HR)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/kpi/templates/:id", "host": ["{{base_url}}"], "path": ["v2", "kpi", "templates", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Add Indicator ke Template (HR)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"On-time Delivery Rate\",\n  \"weight\": 20,\n  \"default_target_value\": 95,\n  \"formula_type\": \"percentage\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/v2/kpi/templates/:id/indicators", "host": ["{{base_url}}"], "path": ["v2", "kpi", "templates", ":id", "indicators"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Update Template Indicator (HR)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"On-time Delivery Rate\",\n  \"weight\": 25\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/v2/kpi/indicators/:id", "host": ["{{base_url}}"], "path": ["v2", "kpi", "indicators", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Delete Template Indicator (HR)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/kpi/indicators/:id", "host": ["{{base_url}}"], "path": ["v2", "kpi", "indicators", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "V2 — KPI Assignments",
+      "item": [
+        {
+          "name": "List Assignments",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/kpi/assignments", "host": ["{{base_url}}"], "path": ["v2", "kpi", "assignments"] }
+          }
+        },
+        {
+          "name": "My Assignments",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/kpi/assignments/my", "host": ["{{base_url}}"], "path": ["v2", "kpi", "assignments", "my"] }
+          }
+        },
+        {
+          "name": "Show Assignment",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/kpi/assignments/:id", "host": ["{{base_url}}"], "path": ["v2", "kpi", "assignments", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Create Assignment (HR/Supervisor)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": 5,\n  \"template_id\": 1,\n  \"period_start\": \"2026-04-01\",\n  \"period_end\": \"2026-04-30\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/v2/kpi/assignments", "host": ["{{base_url}}"], "path": ["v2", "kpi", "assignments"] }
+          }
+        },
+        {
+          "name": "Submit Assignment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/kpi/assignments/:id/submit", "host": ["{{base_url}}"], "path": ["v2", "kpi", "assignments", ":id", "submit"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Approve Assignment (HR/Supervisor)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Disetujui\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/v2/kpi/assignments/:id/approve", "host": ["{{base_url}}"], "path": ["v2", "kpi", "assignments", ":id", "approve"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Reject Assignment (HR/Supervisor)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Data tidak lengkap, mohon dilengkapi\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/v2/kpi/assignments/:id/reject", "host": ["{{base_url}}"], "path": ["v2", "kpi", "assignments", ":id", "reject"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "V2 — Tasks",
+      "item": [
+        {
+          "name": "List Tasks V2",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/tasks/v2", "host": ["{{base_url}}"], "path": ["v2", "tasks", "v2"] }
+          }
+        },
+        {
+          "name": "My Tasks V2",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/tasks/v2/my", "host": ["{{base_url}}"], "path": ["v2", "tasks", "v2", "my"] }
+          }
+        },
+        {
+          "name": "Show Task V2",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/tasks/v2/:id", "host": ["{{base_url}}"], "path": ["v2", "tasks", "v2", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Create Task V2 (HR/Supervisor)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Review Dokumen Q2\",\n  \"description\": \"Review semua dokumen kuartal 2\",\n  \"assigned_to\": 5,\n  \"due_date\": \"2026-05-31\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/v2/tasks/v2", "host": ["{{base_url}}"], "path": ["v2", "tasks", "v2"] }
+          }
+        },
+        {
+          "name": "Update Task V2",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Review Dokumen Q2 - Diperbarui\",\n  \"status\": \"in_progress\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{base_url}}/v2/tasks/v2/:id", "host": ["{{base_url}}"], "path": ["v2", "tasks", "v2", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Delete Task V2 (HR)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/tasks/v2/:id", "host": ["{{base_url}}"], "path": ["v2", "tasks", "v2", ":id"], "variable": [{ "key": "id", "value": "1" }] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "V2 — Reports",
+      "item": [
+        {
+          "name": "KPI Summary",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/reports/kpi-summary", "host": ["{{base_url}}"], "path": ["v2", "reports", "kpi-summary"] }
+          }
+        },
+        {
+          "name": "Employee Performance",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/reports/employee-performance", "host": ["{{base_url}}"], "path": ["v2", "reports", "employee-performance"] }
+          }
+        },
+        {
+          "name": "Department Performance",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/reports/department-performance", "host": ["{{base_url}}"], "path": ["v2", "reports", "department-performance"] }
+          }
+        },
+        {
+          "name": "Export Employee PDF",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/reports/export/employee-pdf", "host": ["{{base_url}}"], "path": ["v2", "reports", "export", "employee-pdf"] }
+          }
+        },
+        {
+          "name": "Export Summary PDF",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/v2/reports/export/summary-pdf", "host": ["{{base_url}}"], "path": ["v2", "reports", "export", "summary-pdf"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "V2 — Audit Logs",
+      "item": [
+        {
+          "name": "List Audit Logs (HR/Super Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/v2/audit-logs?from=&to=&user_id=&event=",
+              "host": ["{{base_url}}"],
+              "path": ["v2", "audit-logs"],
+              "query": [
+                { "key": "from", "value": "" },
+                { "key": "to", "value": "" },
+                { "key": "user_id", "value": "" },
+                { "key": "event", "value": "" }
+              ]
+            }
+          }
+        }
+      ]
+    }
+
+  ]
+}
