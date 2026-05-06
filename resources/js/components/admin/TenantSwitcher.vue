@@ -32,23 +32,42 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { defaultRouteForRole } from '@/router'
 
 const auth   = useAuthStore()
+const route  = useRoute()
 const router = useRouter()
 const open   = ref(false)
 const root   = ref(null)
 
+function canStayOnCurrentRoute(role) {
+  if (!route.meta?.requiresAuth) {
+    return false
+  }
+
+  if (role === 'super_admin') {
+    return true
+  }
+
+  const allowedRoles = route.meta?.roles
+
+  if (!Array.isArray(allowedRoles) || allowedRoles.length === 0) {
+    return true
+  }
+
+  return allowedRoles.includes(role)
+}
+
 function switchTenant(t) {
   auth.setActiveTenant(t.id)
   open.value = false
-  // Redirect to the appropriate dashboard for the role in this tenant
+
   const role = t.role || auth.user?.role
-  const dest = defaultRouteForRole(role)
-  // Use replace + reload to clear all cached API data
-  router.replace(dest).then(() => window.location.reload())
+  const dest = canStayOnCurrentRoute(role) ? route.fullPath : defaultRouteForRole(role)
+
+  router.replace(dest).catch(() => {}).then(() => window.location.reload())
 }
 
 function formatRole(name = '') {

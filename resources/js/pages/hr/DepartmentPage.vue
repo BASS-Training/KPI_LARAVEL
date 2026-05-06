@@ -1,6 +1,7 @@
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { useDepartmentStore } from '@/stores/department';
+import { useAuthStore } from '@/stores/auth';
 import { useToast } from '@/composables/useToast';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import Dialog from '@/components/ui/Dialog.vue';
@@ -8,6 +9,7 @@ import Input from '@/components/ui/Input.vue';
 import Skeleton from '@/components/ui/Skeleton.vue';
 
 const store = useDepartmentStore();
+const auth = useAuthStore();
 const toast = useToast();
 
 const showForm     = ref(false);
@@ -21,9 +23,19 @@ const emptyForm = () => ({ nama: '', kode: '', deskripsi: '', is_active: true })
 const form = reactive(emptyForm());
 
 const departments = computed(() => store.departments);
+const activeTenantName = computed(() => auth.activeTenant?.tenant_name || 'Tenant aktif');
 
-onMounted(() => {
-    store.fetchDepartments();
+onMounted(async () => {
+    if (!auth.myTenants?.length) {
+        await auth.fetchMyTenants().catch(() => {});
+    }
+
+    await store.fetchDepartments();
+});
+
+watch(() => auth.activeTenantId, async (tenantId, oldTenantId) => {
+    if (!tenantId || tenantId === oldTenantId) return;
+    await store.fetchDepartments();
 });
 
 function openCreate() {
@@ -96,7 +108,10 @@ async function doDelete() {
                     <div class="page-hero-meta">Master Data</div>
                     <h2 class="mt-4 text-2xl font-bold leading-tight md:text-3xl">Manajemen Departemen</h2>
                     <p class="mt-2 max-w-xl text-sm leading-6 text-white/78">
-                        Kelola departemen organisasi. Departemen digunakan sebagai referensi jabatan dan pengelompokan karyawan.
+                        Kelola departemen organisasi untuk tenant yang sedang aktif. Departemen digunakan sebagai referensi jabatan dan pengelompokan karyawan.
+                    </p>
+                    <p class="mt-3 inline-flex rounded-full bg-white/14 px-3 py-1 text-xs font-semibold tracking-wide text-white/90">
+                        Tenant aktif: {{ activeTenantName }}
                     </p>
                 </div>
                 <button class="btn-primary shrink-0" @click="openCreate">+ Tambah Departemen</button>

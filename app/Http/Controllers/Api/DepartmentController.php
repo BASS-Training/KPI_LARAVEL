@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Requests\StoreDepartmentRequest;
 use App\Models\ActivityLog;
 use App\Models\Department;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
@@ -20,14 +21,11 @@ class DepartmentController extends ApiController
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        $scopedTenantId = $user && ! $user->canManageAllData()
-            ? (app()->bound('current_tenant_id') ? app('current_tenant_id') : $user->tenant_id)
-            : null;
+        $scopedTenantId = $user ? $this->resolveScopedTenantId($user) : null;
 
         $departments = Department::query()
             ->when($request->boolean('active_only'), fn ($q) => $q->where('is_active', true))
             ->when($scopedTenantId, fn ($q) => $q->where('tenant_id', $scopedTenantId))
-            ->when($request->filled('tenant_id'), fn ($q) => $q->where('tenant_id', $request->integer('tenant_id')))
             ->orderBy('nama')
             ->get();
 
@@ -51,7 +49,10 @@ class DepartmentController extends ApiController
     )]
     public function store(StoreDepartmentRequest $request): JsonResponse
     {
-        $department = Department::create($request->validated());
+        $department = Department::create(array_merge(
+            $request->validated(),
+            ['tenant_id' => $this->resolveScopedTenantId($request->user())]
+        ));
 
         ActivityLog::record($request->user(), 'create_department', 'Department', $department->id, ['nama' => $department->nama], $request);
 
@@ -70,6 +71,7 @@ class DepartmentController extends ApiController
     )]
     public function update(StoreDepartmentRequest $request, Department $department): JsonResponse
     {
+        $this->ensureDepartmentAccessible($request->user(), $department);
         $department->update($request->validated());
 
         ActivityLog::record($request->user(), 'update_department', 'Department', $department->id, ['nama' => $department->nama], $request);
@@ -87,11 +89,30 @@ class DepartmentController extends ApiController
     )]
     public function destroy(Request $request, Department $department): JsonResponse
     {
+        $this->ensureDepartmentAccessible($request->user(), $department);
         $nama = $department->nama;
         $department->delete();
 
         ActivityLog::record($request->user(), 'delete_department', 'Department', null, ['nama' => $nama], $request);
 
         return $this->success(null, 'Departemen berhasil dihapus');
+    }
+
+    private function ensureDepartmentAccessible(User $actor, Department $department): void
+    {
+        if ((int) $department->tenant_id !== $this->resolveScopedTenantId($actor)) {
+            abort(Response::HTTP_FORBIDDEN, 'Departemen ini berada di tenant lain.');
+        }
+    }
+
+    private function resolveScopedTenantId(User $actor): int
+    {
+        $tenantId = app()->bound('current_tenant_id') ? (int) app('current_tenant_id') : 0;
+
+        if ($tenantId > 0) {
+            return $tenantId;
+        }
+
+        return (int) $actor->tenant_id;
     }
 }

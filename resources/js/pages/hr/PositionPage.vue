@@ -8,9 +8,11 @@ import Skeleton from '@/components/ui/Skeleton.vue';
 import { useToast } from '@/composables/useToast';
 import { usePositionStore } from '@/stores/position';
 import { useDepartmentStore } from '@/stores/department';
+import { useAuthStore } from '@/stores/auth';
 
 const posStore  = usePositionStore();
 const deptStore = useDepartmentStore();
+const auth      = useAuthStore();
 const toast     = useToast();
 
 const syncingHierarchy = ref(false);
@@ -24,6 +26,7 @@ const deleting    = ref(false);
 
 const filterDept = ref('');
 const search     = ref('');
+const activeTenantName = computed(() => auth.activeTenant?.tenant_name || 'Tenant aktif');
 
 const filteredPositions = computed(() => {
     let list = posStore.positions;
@@ -48,9 +51,24 @@ const emptyForm = () => ({
 const form   = reactive(emptyForm());
 const errors = reactive({});
 
-onMounted(() => {
-    posStore.fetchPositions();
-    deptStore.fetchDepartments();
+onMounted(async () => {
+    if (!auth.myTenants?.length) {
+        await auth.fetchMyTenants().catch(() => {});
+    }
+
+    await Promise.all([
+        posStore.fetchPositions(),
+        deptStore.fetchDepartments(),
+    ]);
+});
+
+watch(() => auth.activeTenantId, async (tenantId, oldTenantId) => {
+    if (!tenantId || tenantId === oldTenantId) return;
+
+    await Promise.all([
+        posStore.fetchPositions(),
+        deptStore.fetchDepartments(),
+    ]);
 });
 
 function resetForm() {
@@ -143,7 +161,10 @@ async function confirmDelete() {
                 <div class="page-hero-meta">HR Panel</div>
                 <h2 class="mt-4 text-2xl font-bold leading-tight md:text-3xl">Manajemen Jabatan</h2>
                 <p class="mt-2 max-w-xl text-sm leading-6 text-white/78">
-                    Kelola daftar jabatan berdasarkan departemen.
+                    Kelola daftar jabatan berdasarkan departemen untuk tenant yang sedang aktif.
+                </p>
+                <p class="mt-3 inline-flex rounded-full bg-white/14 px-3 py-1 text-xs font-semibold tracking-wide text-white/90">
+                    Tenant aktif: {{ activeTenantName }}
                 </p>
             </div>
         </section>
